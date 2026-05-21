@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rutina Gym">
+    <link rel="manifest" href="manifest.json">
+    <title>Rutina Gym</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #e0e0e0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .tab:active {
+            transform: scale(0.95);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .card {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #exerciseContainer {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .exercise-image {
+            width: 100%;
+            height: 140px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .exercise-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .exercise-image-placeholder {
+            font-size: 80px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .card-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .exercise-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .exercise-specs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .spec {
+            background: rgba(16, 185, 129, 0.15);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instructions li {
+            padding: 4px 0;
+            padding-left: 18px;
+            position: relative;
+            line-height: 1.3;
+            color: #b0b0b0;
+            font-size: 12px;
+        }
+
+        .instructions li:before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-complete {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-complete:active {
+            transform: scale(0.95);
+            background: #059669;
+        }
+
+        .btn-next {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-next:active {
+            transform: scale(0.95);
+            background: #2563eb;
+        }
+
+        .btn-prev {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-prev:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .navigation {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .timer {
+            background: rgba(251, 191, 36, 0.15);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .timer-display {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 6px;
+            display: none;
+        }
+
+        .timer-display.active {
+            display: block;
+        }
+
+        .timer-label {
+            font-size: 11px;
+            color: #fbbf24;
+            margin-bottom: 6px;
+        }
+
+        .timer-btn {
+            background: #fbbf24;
+            color: #0a0a0a;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .timer-btn:active {
+            background: #f59e0b;
+        }
+
+        .completion-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Rutina Gimnasio</h1>
+            <p id="daySubtitle">Énfasis Empuje + Core</p>
+            <div class="tabs">
+                <div class="tab active" onclick="switchDay('lunes')">Lunes</div>
+                <div class="tab" onclick="switchDay('miercoles')">Miércoles</div>
+                <div class="tab" onclick="switchDay('viernes')">Viernes</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="exerciseContainer"></div>
+    </div>
+
+    <script>
+        let currentDay = 'lunes';
+        
+        const dayData = {
+            lunes: {
+                subtitle: "Énfasis Empuje + Core",
+                exercises: [
+            {
+                section: "Calentamiento",
+                name: "Bici estática",
+                emoji: "🚴",
+                image: "img_bici.png",
+                sets: "-",
+                reps: "5 min",
+                rest: "-",
+                instructions: [
+                    "Ajustar asiento a altura de cadera",
+                    "Resistencia baja-media",
+                    "Ritmo cómodo, sin forzar rodillas",
+                    "Objetivo: entrar en calor, no cansar"
+                ]
+            },
+            {
+                section: "Calentamiento",
+                name: "Movilidad hombros",
+                emoji: "🔄",
+                image: "img_movilidad_hombros.png",
+                sets: "-",
+                reps: "10 círculos c/u",
+                rest: "-",
+                instructions: [
+                    "De pie, brazos extendidos a los lados",
+                    "10 círculos hacia adelante",
+                    "10 círculos hacia atrás",
+                    "Movimiento amplio y controlado"
+                ]
+            },
+            {
+                section: "Calentamiento",
+                name: "Movilidad cadera",
+                emoji: "🦵",
+                image: "img_movilidad_cadera.png",
+                sets: "-",
+                reps: "10 veces",
+                rest: "-",
+                instructions: [
+                    "Acostado boca arriba, rodillas flexionadas",
+                    "Dejar caer rodillas juntas hacia un lado",
+                    "Volver al centro, caer al otro lado",
+                    "Mantener hombros en el suelo"
+                ]
+            },
+            {
+                section: "Bloque 1 - Piernas",
+                name: "Extensión de piernas",
+                emoji: "🦿",
+                image: "img_extension.png",
+                sets: "3",
+                reps: "12-15",
+                rest: "90 seg",
+                instructions: [
+                    "Sentado en máquina, espalda apoyada",
+                    "Ajustar rodillo sobre empeine",
+                    "Extender piernas completamente",
+                    "Bajar controlado, sin golpear peso",
+                    "Dolor máximo: 2-3/10"
+                ]
+            },
+            {
+                section: "Bloque 1 - Piernas",
+                name: "Curl femoral acostado",
+                emoji: "🦵",
+                image: "img_curl.png",
+                sets: "3",
+                reps: "12-15",
+                rest: "90 seg",
+                instructions: [
+                    "Acostado boca abajo en máquina",
+                    "Rodillo sobre talones/tendón de Aquiles",
+                    "Flexionar rodillas llevando talones a glúteos",
+                    "Bajar controlado",
+                    "Mantener cadera pegada al banco"
+                ]
+            },
+            {
+                section: "Bloque 1 - Piernas",
+                name: "Abducción de cadera",
+                emoji: "🔀",
+                image: "img_abduccion.png",
+                sets: "3",
+                reps: "15 c/lado",
+                rest: "60 seg",
+                instructions: [
+                    "Máquina de abductores sentado",
+                    "Espalda recta, apoyada",
+                    "Separar piernas contra resistencia",
+                    "Volver controlado sin golpear",
+                    "Fortalece glúteo medio (clave para rótula alta)"
+                ]
+            },
+            {
+                section: "Bloque 1 - Piernas",
+                name: "Peso muerto rumano",
+                emoji: "🏋️",
+                image: "img_peso_muerto.png",
+                sets: "3",
+                reps: "12",
+                rest: "90 seg",
+                instructions: [
+                    "Con barra vacía o 10-20kg máximo",
+                    "Pies ancho de caderas",
+                    "Bisagra de cadera: empujar cola atrás",
+                    "Espalda recta TODO el movimiento",
+                    "Bajar barra hasta media canilla",
+                    "Sentir estiramiento en isquiotibiales",
+                    "NO redondear espalda"
+                ]
+            },
+            {
+                section: "Bloque 2 - Empuje Superior",
+                name: "Press de pecho",
+                emoji: "💪",
+                image: "img_press_pecho.png",
+                sets: "3",
+                reps: "10-12",
+                rest: "90 seg",
+                instructions: [
+                    "Acostado en banco plano",
+                    "Mancuernas a altura del pecho",
+                    "Empujar hacia arriba y juntar",
+                    "Bajar controlado hasta nivel pecho",
+                    "Escápulas retraídas (hombros atrás)"
+                ]
+            },
+            {
+                section: "Bloque 2 - Empuje Superior",
+                name: "Press militar sentado",
+                emoji: "🏋️",
+                image: "img_press_militar.png",
+                sets: "3",
+                reps: "10-12",
+                rest: "90 seg",
+                instructions: [
+                    "Sentado con espalda apoyada",
+                    "Mancuernas a altura hombros",
+                    "Empujar hacia arriba sin arquear espalda",
+                    "Bajar controlado hasta hombros",
+                    "Core activado"
+                ]
+            },
+            {
+                section: "Bloque 2 - Empuje Superior",
+                name: "Elevaciones laterales",
+                emoji: "🙆",
+                image: "img_elevaciones.png",
+                sets: "3",
+                reps: "12-15",
+                rest: "60 seg",
+                instructions: [
+                    "De pie, mancuernas a los lados",
+                    "Levantar brazos lateralmente hasta altura hombros",
+                    "Codos ligeramente flexionados",
+                    "Bajar controlado",
+                    "No usar impulso, peso moderado"
+                ]
+            },
+            {
+                section: "Bloque 2 - Empuje Superior",
+                name: "Fondos en banco",
+                emoji: "💺",
+                image: "img_fondos.png",
+                sets: "3",
+                reps: "10-12",
+                rest: "60 seg",
+                instructions: [
+                    "Manos en borde de banco, dedos hacia adelante",
+                    "Piernas extendidas adelante (más difícil) o flexionadas (más fácil)",
+                    "Bajar flexionando codos hasta 90°",
+                    "Empujar para subir",
+                    "Core firme, no hundirse"
+                ]
+            },
+            {
+                section: "Bloque 3 - Core",
+                name: "Plancha frontal",
+                emoji: "🏋️‍♀️",
+                image: "img_plancha_frontal.png",
+                sets: "3",
+                reps: "30-45 seg",
+                rest: "45 seg",
+                instructions: [
+                    "Apoyar antebrazos y pies",
+                    "Cuerpo recto de cabeza a pies",
+                    "Core apretado, glúteos activados",
+                    "NO dejar caer cadera",
+                    "Respirar normal"
+                ]
+            },
+            {
+                section: "Bloque 3 - Core",
+                name: "Plancha lateral",
+                emoji: "⬅️",
+                image: "img_plancha_lateral.png",
+                sets: "2",
+                reps: "20-30 seg c/lado",
+                rest: "45 seg",
+                instructions: [
+                    "Apoyar antebrazo y borde externo del pie",
+                    "Cuerpo recto lateral",
+                    "Cadera elevada, no caer",
+                    "Hacer un lado, cambiar al otro",
+                    "Core activado"
+                ]
+            },
+            {
+                section: "Bloque 3 - Core",
+                name: "Dead bug",
+                emoji: "🪲",
+                image: "img_dead_bug.png",
+                sets: "3",
+                reps: "10 c/lado",
+                rest: "45 seg",
+                instructions: [
+                    "Acostado boca arriba",
+                    "Brazos extendidos al techo",
+                    "Rodillas a 90°",
+                    "Bajar brazo derecho y pierna izquierda simultáneamente",
+                    "Volver, alternar",
+                    "Espalda baja pegada al suelo"
+                ]
+            },
+            {
+                section: "Vuelta a la calma",
+                name: "Estiramiento cuádriceps",
+                emoji: "🧘",
+                image: "img_estir_cuadriceps.png",
+                sets: "2",
+                reps: "30 seg c/pierna",
+                rest: "-",
+                instructions: [
+                    "De pie, agarrar tobillo llevando talón a glúteo",
+                    "Mantener rodillas juntas",
+                    "Empujar cadera adelante",
+                    "Sin forzar, estiramiento suave"
+                ]
+            },
+            {
+                section: "Vuelta a la calma",
+                name: "Estiramiento isquiotibiales",
+                emoji: "🧘‍♂️",
+                image: "img_estir_isquio.png",
+                sets: "2",
+                reps: "30 seg c/pierna",
+                rest: "-",
+                instructions: [
+                    "Sentado, una pierna extendida",
+                    "Otra pierna flexionada",
+                    "Inclinar torso hacia pierna extendida",
+                    "Mantener espalda recta",
+                    "Sentir estiramiento detrás del muslo"
+                ]
+            },
+            {
+                section: "Vuelta a la calma",
+                name: "Hielo en rodillas",
+                emoji: "🧊",
+                image: "",
+                sets: "-",
+                reps: "10 min",
+                rest: "-",
+                instructions: [
+                    "Aplicar hielo envuelto en toalla",
+                    "Nunca directo sobre piel",
+                    "10 minutos en cada rodilla",
+                    "Solo si hay molestia post-entrenamiento"
+                ]
+            }
+                ]
+            },
+            miercoles: {
+                subtitle: "Énfasis Tracción + Glúteos",
+                exercises: []
+            },
+            viernes: {
+                subtitle: "Énfasis Metabólico + Unilateral",
+                exercises: []
+            }
+        };
+
+        let exercises = dayData[currentDay].exercises;
+
+        let currentExercise = 0;
+        let completedExercises = new Set();
+        let timerInterval = null;
+        let timeLeft = 0;
+
+        function switchDay(day) {
+            currentDay = day;
+            exercises = dayData[day].exercises;
+            
+            // Update subtitle
+            document.getElementById('daySubtitle').textContent = dayData[day].subtitle;
+            
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Reset state
+            currentExercise = 0;
+            completedExercises.clear();
+            
+            // Render first exercise
+            if (exercises.length > 0) {
+                renderExercise(0);
+            } else {
+                document.getElementById('exerciseContainer').innerHTML = 
+                    '<div style="padding: 40px; text-align: center; color: #888;">Rutina próximamente</div>';
+                document.getElementById('progressFill').style.width = '0%';
+            }
+        }
+
+        function renderExercise(index) {
+            const exercise = exercises[index];
+            const isCompleted = completedExercises.has(index);
+            
+            let html = '';
+            
+            html += `
+                <div class="card">
+                    <div class="exercise-image">
+                        ${exercise.image ? 
+                            `<img src="${exercise.image}" alt="${exercise.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="exercise-image-placeholder" style="display:none;">${exercise.emoji}</div>` 
+                            : 
+                            `<div class="exercise-image-placeholder">${exercise.emoji}</div>`
+                        }
+                    </div>
+                    <div class="card-content">
+                        <div class="exercise-title">
+                            ${exercise.name}
+                            ${isCompleted ? '<span class="completion-badge">✓ Hecho</span>' : ''}
+                        </div>
+                        <div style="font-size: 11px; color: #888; margin-bottom: 8px;">${exercise.section}</div>
+                        <div class="exercise-specs">
+                            ${exercise.sets !== '-' ? `<div class="spec">Series: ${exercise.sets}</div>` : ''}
+                            ${exercise.reps !== '-' ? `<div class="spec">Reps: ${exercise.reps}</div>` : ''}
+                            ${exercise.rest !== '-' ? `<div class="spec">Descanso: ${exercise.rest}</div>` : ''}
+                        </div>
+                        <div class="instructions">
+                            <h3>Instrucciones</h3>
+                            <ul>
+                                ${exercise.instructions.map(inst => `<li>${inst}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ${exercise.rest !== '-' ? `
+                        <div class="timer" id="timer">
+                            <div class="timer-label">Temporizador de descanso</div>
+                            <div class="timer-display" id="timerDisplay">00:00</div>
+                            <button class="timer-btn" onclick="startTimer()">Iniciar descanso</button>
+                        </div>
+                        ` : ''}
+                        <div class="button-group">
+                            <button class="btn btn-complete" onclick="toggleComplete()">${isCompleted ? '✓ Completado' : 'Marcar como hecho'}</button>
+                        </div>
+                        <div class="navigation">
+                            ${index > 0 ? '<button class="btn btn-prev" onclick="prevExercise()">← Anterior</button>' : ''}
+                            ${index < exercises.length - 1 ? '<button class="btn btn-next" onclick="nextExercise()">Siguiente →</button>' : '<button class="btn btn-next" onclick="finishWorkout()">Finalizar ✓</button>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('exerciseContainer').innerHTML = html;
+            updateProgress();
+        }
+
+        function toggleComplete() {
+            if (completedExercises.has(currentExercise)) {
+                completedExercises.delete(currentExercise);
+            } else {
+                completedExercises.add(currentExercise);
+            }
+            renderExercise(currentExercise);
+        }
+
+        function nextExercise() {
+            if (currentExercise < exercises.length - 1) {
+                currentExercise++;
+                renderExercise(currentExercise);
+            }
+        }
+
+        function prevExercise() {
+            if (currentExercise > 0) {
+                currentExercise--;
+                renderExercise(currentExercise);
+            }
+        }
+
+        function startTimer() {
+            const restTime = exercises[currentExercise].rest;
+            if (restTime === '-') return;
+            
+            // Convert rest time to seconds
+            timeLeft = parseInt(restTime) || 90;
+            
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.classList.add('active');
+            updateTimerDisplay();
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timerDisplay').textContent = '¡Listo!';
+                    setTimeout(() => {
+                        timerDisplay.classList.remove('active');
+                    }, 2000);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress() {
+            const progress = (completedExercises.size / exercises.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function finishWorkout() {
+            if (confirm(`¡Felicitaciones! Completaste ${completedExercises.size} de ${exercises.length} ejercicios.\n\n¿Quieres reiniciar la rutina?`)) {
+                completedExercises.clear();
+                currentExercise = 0;
+                renderExercise(0);
+            }
+        }
+
+        // Initialize
+        renderExercise(0);
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+    </script>
+</body>
+</html>
