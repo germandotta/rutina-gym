@@ -1,8 +1,8 @@
 {
-  "name": "Rutina Gimnasio",
-  "short_name": "Rutina Gym",
-  "description": "Rutina de rehabilitación de rodillas - Lunes, Miércoles, Viernes",
-  "start_url": "./rutina-gym-lunes.html",
+  "name": "Entreno",
+  "short_name": "Entreno",
+  "description": "Rutina de rehabilitación de rodillas",
+  "start_url": "../entreno-lunes.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#10b981",

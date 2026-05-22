@@ -1,6 +1,6 @@
 const CACHE_NAME = 'rutina-gym-v1';
 const urlsToCache = [
-  './rutina-gym-lunes.html',
+  '../entreno-lunes.html',
   './manifest.json',
   './img_bici.png',
   './img_movilidad_hombros.png',
