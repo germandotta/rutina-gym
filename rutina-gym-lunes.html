@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Rutina Gym">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="config/manifest.json">
     <title>Rutina Gym</title>
     <style>
         * {
@@ -126,14 +126,14 @@
 
         .exercise-image {
             width: 100%;
-            height: 160px;
+            flex: 1;
             background: #111;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             position: relative;
-            flex-shrink: 0;
+            min-height: 120px;
         }
 
         .exercise-image img {
@@ -377,7 +377,7 @@
                 section: "Calentamiento",
                 name: "Bici estática",
                 emoji: "🚴",
-                image: "img_bici.png",
+                image: "img/img_bici.png",
                 sets: "-",
                 reps: "5 min",
                 rest: "-",
@@ -392,7 +392,7 @@
                 section: "Calentamiento",
                 name: "Movilidad hombros",
                 emoji: "🔄",
-                image: "img_movilidad_hombros.png",
+                image: "img/img_movilidad_hombros.png",
                 sets: "-",
                 reps: "10 círculos c/u",
                 rest: "-",
@@ -407,7 +407,7 @@
                 section: "Calentamiento",
                 name: "Movilidad cadera",
                 emoji: "🦵",
-                image: "img_movilidad_cadera.png",
+                image: "img/img_movilidad_cadera.png",
                 sets: "-",
                 reps: "10 veces",
                 rest: "-",
@@ -422,7 +422,7 @@
                 section: "Bloque 1 - Piernas",
                 name: "Extensión de piernas",
                 emoji: "🦿",
-                image: "img_extension.png",
+                image: "img/img_extension.png",
                 sets: "3",
                 reps: "12-15",
                 rest: "90 seg",
@@ -438,7 +438,7 @@
                 section: "Bloque 1 - Piernas",
                 name: "Curl femoral acostado",
                 emoji: "🦵",
-                image: "img_curl.png",
+                image: "img/img_curl.png",
                 sets: "3",
                 reps: "12-15",
                 rest: "90 seg",
@@ -454,7 +454,7 @@
                 section: "Bloque 1 - Piernas",
                 name: "Abducción de cadera",
                 emoji: "🔀",
-                image: "img_abduccion.png",
+                image: "img/img_abduccion.png",
                 sets: "3",
                 reps: "15 c/lado",
                 rest: "60 seg",
@@ -470,7 +470,7 @@
                 section: "Bloque 1 - Piernas",
                 name: "Peso muerto rumano",
                 emoji: "🏋️",
-                image: "img_peso_muerto.png",
+                image: "img/img_peso_muerto.png",
                 sets: "3",
                 reps: "12",
                 rest: "90 seg",
@@ -488,7 +488,7 @@
                 section: "Bloque 2 - Empuje Superior",
                 name: "Press de pecho",
                 emoji: "💪",
-                image: "img_press_pecho.png",
+                image: "img/img_press_pecho.png",
                 sets: "3",
                 reps: "10-12",
                 rest: "90 seg",
@@ -504,7 +504,7 @@
                 section: "Bloque 2 - Empuje Superior",
                 name: "Press militar sentado",
                 emoji: "🏋️",
-                image: "img_press_militar.png",
+                image: "img/img_press_militar.png",
                 sets: "3",
                 reps: "10-12",
                 rest: "90 seg",
@@ -520,7 +520,7 @@
                 section: "Bloque 2 - Empuje Superior",
                 name: "Elevaciones laterales",
                 emoji: "🙆",
-                image: "img_elevaciones.png",
+                image: "img/img_elevaciones.png",
                 sets: "3",
                 reps: "12-15",
                 rest: "60 seg",
@@ -536,7 +536,7 @@
                 section: "Bloque 2 - Empuje Superior",
                 name: "Fondos en banco",
                 emoji: "💺",
-                image: "img_fondos.png",
+                image: "img/img_fondos.png",
                 sets: "3",
                 reps: "10-12",
                 rest: "60 seg",
@@ -552,7 +552,7 @@
                 section: "Bloque 3 - Core",
                 name: "Plancha frontal",
                 emoji: "🏋️‍♀️",
-                image: "img_plancha_frontal.png",
+                image: "img/img_plancha_frontal.png",
                 sets: "3",
                 reps: "30-45 seg",
                 rest: "45 seg",
@@ -568,7 +568,7 @@
                 section: "Bloque 3 - Core",
                 name: "Plancha lateral",
                 emoji: "⬅️",
-                image: "img_plancha_lateral.png",
+                image: "img/img_plancha_lateral.png",
                 sets: "2",
                 reps: "20-30 seg c/lado",
                 rest: "45 seg",
@@ -584,7 +584,7 @@
                 section: "Bloque 3 - Core",
                 name: "Dead bug",
                 emoji: "🪲",
-                image: "img_dead_bug.png",
+                image: "img/img_dead_bug.png",
                 sets: "3",
                 reps: "10 c/lado",
                 rest: "45 seg",
@@ -601,7 +601,7 @@
                 section: "Vuelta a la calma",
                 name: "Estiramiento cuádriceps",
                 emoji: "🧘",
-                image: "img_estir_cuadriceps.png",
+                image: "img/img_estir_cuadriceps.png",
                 sets: "2",
                 reps: "30 seg c/pierna",
                 rest: "-",
@@ -616,7 +616,7 @@
                 section: "Vuelta a la calma",
                 name: "Estiramiento isquiotibiales",
                 emoji: "🧘‍♂️",
-                image: "img_estir_isquio.png",
+                image: "img/img_estir_isquio.png",
                 sets: "2",
                 reps: "30 seg c/pierna",
                 rest: "-",
@@ -704,7 +704,6 @@
                         <div class="exercise-title">
                             <span>${exercise.name}</span>
                             <span class="section-badge">${exercise.section}</span>
-                            ${isCompleted ? '<span class="completion-badge">✓ Hecho</span>' : ''}
                         </div>
                         <div class="exercise-specs">
                             ${exercise.sets !== '-' ? `<div class="spec">Series: ${exercise.sets}</div>` : ''}
@@ -717,13 +716,6 @@
                                 ${exercise.instructions.map(inst => `<li>${inst}</li>`).join('')}
                             </ul>
                         </div>
-                        ${exercise.rest !== '-' ? `
-                        <div class="timer" id="timer">
-                            <div class="timer-label">Temporizador de descanso</div>
-                            <div class="timer-display" id="timerDisplay">00:00</div>
-                            <button class="timer-btn" onclick="startTimer()">Iniciar descanso</button>
-                        </div>
-                        ` : ''}
                         <div class="button-group">
                             <button class="btn btn-complete" onclick="toggleComplete()">${isCompleted ? '✓ Completado' : 'Marcar como hecho'}</button>
                         </div>
@@ -814,7 +806,7 @@
 
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register('config/service-worker.js')
                 .then(() => console.log('Service Worker registered'))
                 .catch(err => console.log('Service Worker registration failed:', err));
         }
