@@ -126,7 +126,7 @@
 
         .exercise-image {
             width: 100%;
-            height: 120px;
+            height: 160px;
             background: #111;
             display: flex;
             align-items: center;
@@ -353,7 +353,6 @@
     <div class="container">
         <div class="header">
             <h1>Rutina Gimnasio</h1>
-            <p id="daySubtitle">Énfasis Empuje + Core</p>
             <div class="tabs">
                 <div class="tab active" onclick="switchDay('lunes')">Lunes</div>
                 <div class="tab" onclick="switchDay('miercoles')">Miércoles</div>
@@ -666,9 +665,6 @@
         function switchDay(day) {
             currentDay = day;
             exercises = dayData[day].exercises;
-            
-            // Update subtitle
-            document.getElementById('daySubtitle').textContent = dayData[day].subtitle;
             
             // Update active tab
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
