@@ -274,9 +274,27 @@
             font-size: 11px;
             color: #666;
             min-height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
 
         .ultimo-registro span { color: #10b981; font-weight: 600; }
+
+        .btn-borrar-registro {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 15px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 2px;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+
+        .btn-borrar-registro:active { opacity: 1; }
 
         /* BOTONES ACCIÓN */
         .button-group {
@@ -1184,8 +1202,8 @@ function renderExercise(index) {
             <button class="btn-guardar" onclick="guardarRegistro('${exercise.id}')">Guardar registro</button>
             <div class="ultimo-registro" id="ultimoRegistro">
                 ${lastRecord
-                    ? `Última vez: <span>${lastRecord.carga} kg · ${lastRecord.reps} reps</span> — ${lastRecord.fecha} ${lastRecord.hora}`
-                    : 'Sin registro previo'}
+                    ? `<span style="color:#666">Última vez: <span style="color:#10b981;font-weight:600">${lastRecord.carga} kg · ${lastRecord.reps} reps</span> — ${lastRecord.fecha} ${lastRecord.hora}</span><button class="btn-borrar-registro" onclick="borrarRegistro('${exercise.id}')">✕</button>`
+                    : '<span>Sin registro previo</span>'}
             </div>
         </div>
     ` : '';
@@ -1238,9 +1256,15 @@ function guardarRegistro(exerciseId) {
     if (!carga && !reps) return;
     const record = saveRecord(exerciseId, carga || '—', reps || '—');
     const el = document.getElementById('ultimoRegistro');
-    if (el) el.innerHTML = `Última vez: <span>${record.carga} kg · ${record.reps} reps</span> — ${record.fecha} ${record.hora}`;
+    if (el) el.innerHTML = `<span style="color:#666">Última vez: <span style="color:#10b981;font-weight:600">${record.carga} kg · ${record.reps} reps</span> — ${record.fecha} ${record.hora}</span><button class="btn-borrar-registro" onclick="borrarRegistro('${exerciseId}')">✕</button>`;
     document.getElementById('inputCarga').value = '';
     document.getElementById('inputReps').value = '';
+}
+
+function borrarRegistro(exerciseId) {
+    try { localStorage.removeItem(storageKey(exerciseId)); } catch(e) {}
+    const el = document.getElementById('ultimoRegistro');
+    if (el) el.innerHTML = '<span>Sin registro previo</span>';
 }
 
 // ── LIGHTBOX ──────────────────────────────────────────────────────────────────
