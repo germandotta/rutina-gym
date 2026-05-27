@@ -32,28 +32,35 @@
 
         /* HEADER */
         .header {
-            text-align: center;
-            color: white;
-            padding: 10px 15px;
+            padding: 18px 20px 14px;
             background: rgba(255,255,255,0.05);
             flex-shrink: 0;
         }
 
-        .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
 
         .tabs {
             display: flex;
-            gap: 6px;
-            margin-top: 6px;
+            gap: 8px;
         }
 
         .tab {
-            flex: 1;
-            padding: 8px;
+            padding: 8px 18px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: rgba(255,255,255,0.6);
             cursor: pointer;
@@ -111,16 +118,13 @@
             line-height: 1.2;
         }
 
-        .section-badge {
-            display: inline-block;
-            margin-top: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            color: #888;
-            background: rgba(255,255,255,0.05);
-            padding: 3px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.1);
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
         /* BOTÓN OJO */
@@ -169,9 +173,9 @@
         }
 
         .instructions h3 {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -180,11 +184,11 @@
         .instructions ul { list-style: none; padding: 0; }
 
         .instructions li {
-            padding: 5px 0 5px 18px;
+            padding: 8px 0 8px 22px;
             position: relative;
-            line-height: 1.45;
+            line-height: 1.5;
             color: #d0d0d0;
-            font-size: 13px;
+            font-size: 16px;
             border-bottom: 1px solid rgba(255,255,255,0.04);
         }
 
@@ -357,7 +361,12 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Entreno</h1>
+        <div class="header-title">
+            <svg width="32" height="22" viewBox="0 0 334 227" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M315.738 83.9437V33.6291H275.711V0H213.012V81.7531H121.031V0H58.3179V33.6291H18.2913V83.9437C18.2913 94.0269 10.0958 102.187 0 102.187V124.813C10.1099 124.813 18.2913 132.987 18.2913 143.056V193.371H58.3179V227H121.017V145.247H212.983V227H275.682V193.371H315.709V143.056C315.709 132.973 323.904 124.813 334 124.813V102.187C323.89 102.187 315.709 94.0128 315.709 83.9437H315.738ZM58.3143 170.758H40.9733V56.2377H58.3143V170.758ZM98.3264 81.7498V204.372H80.9996V22.6235H98.3264V81.7498ZM203.832 122.619H130.171C125.124 122.619 121.012 118.532 121.012 113.484C121.012 108.435 125.109 104.348 130.171 104.348H203.832C208.88 104.348 212.992 108.435 212.992 113.484C212.992 118.532 208.894 122.619 203.832 122.619ZM253.006 33.611V204.358H235.679V22.6235H253.006V33.6258V33.611ZM293.033 170.743H275.692L275.706 56.2377H293.047V170.743H293.033Z" fill="#10B981"/>
+            </svg>
+            <h1>Entreno</h1>
+        </div>
         <div class="tabs">
             <div class="tab active" data-day="lunes" onclick="switchDay('lunes', this)">Lunes</div>
             <div class="tab" data-day="miercoles" onclick="switchDay('miercoles', this)">Miércoles</div>
@@ -1187,8 +1196,8 @@ function renderExercise(index) {
             <div class="card-content">
                 <div class="exercise-header">
                     <div class="exercise-title-block">
+                        <div class="section-label">${exercise.section}</div>
                         <div class="exercise-name">${exercise.name}</div>
-                        <span class="section-badge">${exercise.section}</span>
                     </div>
                     <button class="btn-eye ${!hasImage ? 'no-image' : ''}"
                         onclick="openLightbox('${exercise.image}', '${exercise.name}', '${exercise.emoji}')"
