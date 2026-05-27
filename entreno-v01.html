@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Entreno">
+    <link rel="apple-touch-icon" href="config/icon-192.png">
+    <link rel="manifest" href="config/manifest.json">
+    <title>Entreno v01</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            height: 100vh;
+            color: #e0e0e0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            color: white;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+
+        .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            background: rgba(16,185,129,0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+
+
+        /* CARD */
+        #exerciseContainer {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            background: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .card-content {
+            padding: 14px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* TITLE ROW */
+        .exercise-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .exercise-title-block { flex: 1; }
+
+        .exercise-name {
+            font-size: 19px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .section-badge {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #888;
+            background: rgba(255,255,255,0.05);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* BOTÓN OJO */
+        .btn-eye {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-eye:active { background: rgba(255,255,255,0.15); }
+        .btn-eye.no-image { opacity: 0.2; pointer-events: none; }
+
+        /* SPECS */
+        .exercise-specs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .spec {
+            background: rgba(16,185,129,0.15);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #10b981;
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+
+        /* INSTRUCCIONES */
+        .instructions {
+            background: rgba(255,255,255,0.04);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .instructions h3 {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .instructions ul { list-style: none; padding: 0; }
+
+        .instructions li {
+            padding: 5px 0 5px 18px;
+            position: relative;
+            line-height: 1.45;
+            color: #d0d0d0;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .instructions li:last-child { border-bottom: none; }
+
+        .instructions li:before {
+            content: "•";
+            position: absolute;
+            left: 6px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        /* REGISTRO DE CARGA */
+        .registro-block {
+            background: rgba(16,185,129,0.06);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .registro-block h3 {
+            font-size: 11px;
+            font-weight: 600;
+            color: #10b981;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .registro-inputs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .registro-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .registro-field label {
+            font-size: 10px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .registro-field input {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            padding: 7px 10px;
+            width: 100%;
+            -webkit-appearance: none;
+        }
+
+        .registro-field input:focus {
+            outline: none;
+            border-color: #10b981;
+            background: rgba(16,185,129,0.08);
+        }
+
+        .btn-guardar {
+            width: 100%;
+            background: rgba(16,185,129,0.2);
+            border: 1px solid rgba(16,185,129,0.4);
+            color: #10b981;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-guardar:active { background: rgba(16,185,129,0.35); }
+
+        .ultimo-registro {
+            margin-top: 7px;
+            font-size: 11px;
+            color: #666;
+            min-height: 14px;
+        }
+
+        .ultimo-registro span { color: #10b981; font-weight: 600; }
+
+        /* BOTONES ACCIÓN */
+        .button-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+
+
+        .btn-next { background: #3b82f6; color: white; }
+        .btn-next:active { transform: scale(0.97); background: #2563eb; }
+
+        .btn-prev { background: rgba(255,255,255,0.1); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-prev:active { transform: scale(0.97); }
+
+        .navigation { display: flex; gap: 6px; }
+
+        /* LIGHTBOX */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .lightbox.open { display: flex; }
+
+        .lightbox img {
+            max-width: 92vw;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox-emoji {
+            font-size: 100px;
+        }
+
+        .lightbox-close {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .lightbox-name {
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Entreno</h1>
+        <div class="tabs">
+            <div class="tab active" data-day="lunes" onclick="switchDay('lunes', this)">Lunes</div>
+            <div class="tab" data-day="miercoles" onclick="switchDay('miercoles', this)">Miércoles</div>
+            <div class="tab" data-day="viernes" onclick="switchDay('viernes', this)">Viernes</div>
+        </div>
+
+    </div>
+
+    <div id="exerciseContainer"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-name" id="lightboxName"></div>
+    <img id="lightboxImg" src="" alt="" onerror="this.style.display='none'; document.getElementById('lightboxEmoji').style.display='block'">
+    <div class="lightbox-emoji" id="lightboxEmoji" style="display:none"></div>
+    <button class="lightbox-close" onclick="closeLightbox()">Cerrar</button>
+</div>
+
+<script>
+// ── DATOS ─────────────────────────────────────────────────────────────────────
+
+const dayData = {
+    lunes: {
+        subtitle: "Énfasis Empuje + Core",
+        exercises: [
+            {
+                id: "bici",
+                section: "Calentamiento",
+                name: "Bici estática",
+                emoji: "🚴",
+                image: "img/img_bici.png",
+                sets: "-", reps: "5 min", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Ajustar asiento a altura de cadera",
+                    "Resistencia baja-media",
+                    "Ritmo cómodo, sin forzar rodillas",
+                    "Objetivo: entrar en calor, no cansar"
+                ]
+            },
+            {
+                id: "mov_hombros",
+                section: "Calentamiento",
+                name: "Movilidad hombros",
+                emoji: "🔄",
+                image: "img/img_movilidad_hombros.png",
+                sets: "-", reps: "10 círculos c/u", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "De pie, brazos extendidos a los lados",
+                    "10 círculos hacia adelante",
+                    "10 círculos hacia atrás",
+                    "Movimiento amplio y controlado"
+                ]
+            },
+            {
+                id: "mov_cadera",
+                section: "Calentamiento",
+                name: "Movilidad cadera",
+                emoji: "🦵",
+                image: "img/img_movilidad_cadera.png",
+                sets: "-", reps: "10 veces", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Acostado boca arriba, rodillas flexionadas",
+                    "Dejar caer rodillas juntas hacia un lado",
+                    "Volver al centro, caer al otro lado",
+                    "Mantener hombros en el suelo"
+                ]
+            },
+            {
+                id: "extension_piernas",
+                section: "Bloque 1 — Piernas",
+                name: "Extensión de piernas",
+                emoji: "🦿",
+                image: "img/img_extension.png",
+                sets: "3", reps: "12-15", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso máquina (kg)",
+                instructions: [
+                    "Sentado en máquina, espalda apoyada",
+                    "Ajustar rodillo sobre empeine",
+                    "Extender piernas completamente",
+                    "Bajar controlado, sin golpear peso",
+                    "Dolor máximo permitido: 2-3/10"
+                ]
+            },
+            {
+                id: "curl_femoral",
+                section: "Bloque 1 — Piernas",
+                name: "Curl femoral acostado",
+                emoji: "🦵",
+                image: "img/img_curl.png",
+                sets: "3", reps: "12-15", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso máquina (kg)",
+                instructions: [
+                    "Acostado boca abajo en máquina",
+                    "Rodillo sobre talones / tendón de Aquiles",
+                    "Flexionar rodillas llevando talones a glúteos",
+                    "Bajar controlado",
+                    "Mantener cadera pegada al banco"
+                ]
+            },
+            {
+                id: "caminata_banda",
+                section: "Bloque 1 — Piernas",
+                name: "Caminata lateral con banda",
+                emoji: "🔀",
+                image: "img/img_caminata_banda.png",
+                sets: "3", reps: "15 pasos c/lado", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Resistencia banda",
+                instructions: [
+                    "Banda elástica por encima de las rodillas",
+                    "Pies ancho de caderas, rodillas levemente flexionadas",
+                    "Dar 15 pasos laterales hacia la derecha, luego 15 a la izquierda",
+                    "Mantener tensión en la banda todo el tiempo — no juntar los pies del todo",
+                    "Core activado, tronco erguido sin balancear",
+                    "Fortalece glúteo medio: clave para el control rotuliano"
+                ]
+            },
+            {
+                id: "peso_muerto",
+                section: "Bloque 1 — Piernas",
+                name: "Peso muerto rumano",
+                emoji: "🏋️",
+                image: "img/img_peso_muerto.png",
+                sets: "3", reps: "12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso barra/mancuernas (kg)",
+                instructions: [
+                    "Barra vacía o hasta 20 kg máximo",
+                    "Pies ancho de caderas",
+                    "Bisagra de cadera: empujar cola hacia atrás",
+                    "Espalda recta DURANTE TODO el movimiento",
+                    "Bajar barra hasta media canilla",
+                    "Sentir estiramiento en isquiotibiales",
+                    "NO redondear espalda bajo ningún concepto"
+                ]
+            },
+            {
+                id: "press_pecho",
+                section: "Bloque 2 — Empuje Superior",
+                name: "Press de pecho",
+                emoji: "💪",
+                image: "img/img_press_pecho.png",
+                sets: "3", reps: "10-12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna c/u (kg)",
+                instructions: [
+                    "Acostado en banco plano",
+                    "Mancuernas a altura del pecho",
+                    "Empujar hacia arriba y ligeramente juntar",
+                    "Bajar controlado hasta nivel pecho",
+                    "Escápulas retraídas — hombros atrás y abajo"
+                ]
+            },
+            {
+                id: "press_militar",
+                section: "Bloque 2 — Empuje Superior",
+                name: "Press militar sentado",
+                emoji: "🏋️",
+                image: "img/img_press_militar.png",
+                sets: "3", reps: "10-12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna c/u (kg)",
+                instructions: [
+                    "Sentado con espalda apoyada",
+                    "Mancuernas a altura de hombros",
+                    "Empujar hacia arriba sin arquear espalda",
+                    "Bajar controlado hasta hombros",
+                    "Core activado durante todo el movimiento"
+                ]
+            },
+            {
+                id: "elevaciones_laterales",
+                section: "Bloque 2 — Empuje Superior",
+                name: "Elevaciones laterales",
+                emoji: "🙆",
+                image: "img/img_elevaciones.png",
+                sets: "3", reps: "12-15", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna c/u (kg)",
+                instructions: [
+                    "De pie, mancuernas a los lados",
+                    "Levantar brazos lateralmente hasta altura de hombros",
+                    "Codos ligeramente flexionados",
+                    "Bajar controlado — 2-3 segundos de bajada",
+                    "No usar impulso — peso moderado"
+                ]
+            },
+            {
+                id: "fondos_banco",
+                section: "Bloque 2 — Empuje Superior",
+                name: "Fondos en banco",
+                emoji: "💺",
+                image: "img/img_fondos.png",
+                sets: "3", reps: "10-12", rest: "60 seg",
+                hasLoad: false,
+                instructions: [
+                    "Manos en borde de banco, dedos hacia adelante",
+                    "Piernas extendidas adelante (más difícil) o flexionadas (más fácil)",
+                    "Bajar flexionando codos hasta 90°",
+                    "Empujar para subir — codos no van más allá de 90°",
+                    "Core firme, no hundirse entre los hombros"
+                ]
+            },
+            {
+                id: "plancha_frontal",
+                section: "Bloque 3 — Core",
+                name: "Plancha frontal",
+                emoji: "🏋️‍♀️",
+                image: "img/img_plancha_frontal.png",
+                sets: "3", reps: "30-45 seg", rest: "45 seg",
+                hasLoad: false,
+                instructions: [
+                    "Apoyar antebrazos y puntas de pies",
+                    "Cuerpo recto de cabeza a talones",
+                    "Core apretado, glúteos activados",
+                    "NO dejar caer la cadera",
+                    "Respirar normal — no aguantar el aire"
+                ]
+            },
+            {
+                id: "plancha_lateral",
+                section: "Bloque 3 — Core",
+                name: "Plancha lateral",
+                emoji: "⬅️",
+                image: "img/img_plancha_lateral.png",
+                sets: "2", reps: "20-30 seg c/lado", rest: "45 seg",
+                hasLoad: false,
+                instructions: [
+                    "Apoyar antebrazo y borde externo del pie",
+                    "Cuerpo recto en posición lateral",
+                    "Cadera elevada — no dejar caer",
+                    "Hacer un lado, descansar, cambiar",
+                    "Core activado todo el tiempo"
+                ]
+            },
+            {
+                id: "dead_bug",
+                section: "Bloque 3 — Core",
+                name: "Dead bug",
+                emoji: "🪲",
+                image: "img/img_dead_bug.png",
+                sets: "3", reps: "10 c/lado", rest: "45 seg",
+                hasLoad: false,
+                instructions: [
+                    "Acostado boca arriba",
+                    "Brazos extendidos hacia el techo",
+                    "Caderas y rodillas a 90°",
+                    "Bajar brazo derecho y pierna izquierda simultáneamente",
+                    "Volver al centro y alternar",
+                    "Espalda baja pegada al suelo en todo momento"
+                ]
+            },
+            {
+                id: "estir_cuadriceps",
+                section: "Vuelta a la calma",
+                name: "Estiramiento cuádriceps",
+                emoji: "🧘",
+                image: "img/img_estir_cuadriceps.png",
+                sets: "2", reps: "30 seg c/pierna", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "De pie, agarrar tobillo llevando talón a glúteo",
+                    "Mantener rodillas juntas",
+                    "Empujar cadera ligeramente hacia adelante",
+                    "Estiramiento suave — no forzar"
+                ]
+            },
+            {
+                id: "estir_isquios",
+                section: "Vuelta a la calma",
+                name: "Estiramiento isquiotibiales",
+                emoji: "🧘‍♂️",
+                image: "img/img_estir_isquio.png",
+                sets: "2", reps: "30 seg c/pierna", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Sentado, una pierna extendida",
+                    "Otra pierna flexionada hacia adentro",
+                    "Inclinar torso hacia la pierna extendida",
+                    "Mantener espalda recta — no redondear",
+                    "Sentir estiramiento detrás del muslo"
+                ]
+            },
+            {
+                id: "hielo",
+                section: "Vuelta a la calma",
+                name: "Hielo en rodillas",
+                emoji: "🧊",
+                image: "",
+                sets: "-", reps: "10 min", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Aplicar hielo envuelto en toalla",
+                    "Nunca directo sobre la piel",
+                    "10 minutos en cada rodilla",
+                    "Solo si hay molestia post-entrenamiento"
+                ]
+            }
+        ]
+    },
+
+    miercoles: {
+        subtitle: "Énfasis Tracción + Glúteos",
+        exercises: [
+            {
+                id: "bici_mie",
+                section: "Calentamiento",
+                name: "Bici estática",
+                emoji: "🚴",
+                image: "img/img_bici.png",
+                sets: "-", reps: "5 min", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Ajustar asiento a altura de cadera",
+                    "Resistencia baja-media",
+                    "Ritmo cómodo, sin forzar rodillas",
+                    "Objetivo: entrar en calor, no cansar"
+                ]
+            },
+            {
+                id: "mov_cadera_mie",
+                section: "Calentamiento",
+                name: "Movilidad cadera",
+                emoji: "🦵",
+                image: "img/img_movilidad_cadera.png",
+                sets: "-", reps: "10 veces", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Acostado boca arriba, rodillas flexionadas",
+                    "Dejar caer rodillas juntas hacia un lado",
+                    "Volver al centro, caer al otro lado",
+                    "Mantener hombros en el suelo"
+                ]
+            },
+            {
+                id: "puente_gluteo",
+                section: "Bloque 1 — Glúteos / Cadena posterior",
+                name: "Puente de glúteos con carga",
+                emoji: "🍑",
+                image: "img/img_puente_gluteo.png",
+                sets: "3", reps: "15", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Peso sobre cadera (kg)",
+                instructions: [
+                    "Acostado boca arriba, rodillas flexionadas a ~90°, pies planos",
+                    "Colocar mancuerna o barra sobre la cadera",
+                    "Empujar talones contra el suelo y elevar cadera",
+                    "Llegar a línea recta hombro-cadera-rodilla",
+                    "Apretar glúteos en la parte alta — 1 segundo de pausa",
+                    "Bajar controlado sin apoyar la cadera entre reps"
+                ]
+            },
+            {
+                id: "peso_muerto_uni",
+                section: "Bloque 1 — Glúteos / Cadena posterior",
+                name: "Peso muerto rumano unilateral",
+                emoji: "🏋️",
+                image: "img/img_peso_muerto.png",
+                sets: "3", reps: "10 c/pierna", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna (kg)",
+                instructions: [
+                    "De pie, mancuerna en la mano contralateral a la pierna de apoyo",
+                    "Bisagra de cadera: inclinar torso hacia adelante mientras la pierna libre sube atrás",
+                    "Mantener espalda recta y cadera alineada — no rotar la pelvis",
+                    "Bajar hasta sentir estiramiento en el isquiotibial de apoyo",
+                    "Volver empujando con el talón",
+                    "Flexión de rodilla leve — no bloquear"
+                ]
+            },
+            {
+                id: "caminata_banda_mie",
+                section: "Bloque 1 — Glúteos / Cadena posterior",
+                name: "Caminata lateral con banda",
+                emoji: "🔀",
+                image: "img/img_caminata_banda.png",
+                sets: "3", reps: "15 pasos c/lado", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Resistencia banda",
+                instructions: [
+                    "Banda elástica por encima de las rodillas",
+                    "Pies ancho de caderas, rodillas levemente flexionadas",
+                    "15 pasos laterales a la derecha, luego 15 a la izquierda",
+                    "Mantener tensión en la banda — no juntar los pies del todo",
+                    "Core activado, tronco erguido"
+                ]
+            },
+            {
+                id: "jalon_pecho",
+                section: "Bloque 2 — Tracción Superior",
+                name: "Jalón al pecho",
+                emoji: "🔽",
+                image: "img/img_jalon.png",
+                sets: "3", reps: "10-12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso máquina (kg)",
+                instructions: [
+                    "Sentado en máquina de jalón, rodillas bajo el apoyo",
+                    "Agarre prono, algo más ancho que hombros",
+                    "Tirar la barra hacia el pecho superior — no hacia la nuca",
+                    "Codos bajan diagonalmente hacia los costados",
+                    "Espalda ligeramente inclinada, pecho hacia la barra",
+                    "Subir controlado — no soltar el peso"
+                ]
+            },
+            {
+                id: "remo_maquina",
+                section: "Bloque 2 — Tracción Superior",
+                name: "Remo en máquina / polea baja",
+                emoji: "🚣",
+                image: "img/img_remo.png",
+                sets: "3", reps: "10-12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso (kg)",
+                instructions: [
+                    "Sentado frente a la polea baja con agarre neutro",
+                    "Espalda erguida, pecho fuera",
+                    "Tirar hacia el abdomen llevando codos hacia atrás",
+                    "Apretar escápulas en la posición final — 1 segundo",
+                    "Extender brazos de forma controlada — no inclinarse hacia adelante"
+                ]
+            },
+            {
+                id: "curl_biceps",
+                section: "Bloque 2 — Tracción Superior",
+                name: "Curl de bíceps con mancuernas",
+                emoji: "💪",
+                image: "img/img_curl_biceps.png",
+                sets: "3", reps: "10-12", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna c/u (kg)",
+                instructions: [
+                    "De pie, mancuernas a los costados con agarre supino",
+                    "Flexionar codos llevando las mancuernas hacia los hombros",
+                    "Codos pegados al torso — no moverlos hacia adelante",
+                    "Bajar controlado — resistir el peso en la bajada",
+                    "Alternar brazos o hacer ambos juntos"
+                ]
+            },
+            {
+                id: "face_pull",
+                section: "Bloque 2 — Tracción Superior",
+                name: "Face pull con polea",
+                emoji: "🎯",
+                image: "img/img_face_pull.png",
+                sets: "3", reps: "15", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Peso (kg)",
+                instructions: [
+                    "Polea alta con cuerda, agarre neutro en cada extremo",
+                    "Dar un paso atrás — cuerpo ligeramente inclinado",
+                    "Tirar la cuerda hacia la cara separando los extremos",
+                    "Codos a la altura de los hombros o ligeramente más altos",
+                    "Apretar escápulas y rotadores externos al final",
+                    "Peso liviano — priorizar técnica y recorrido completo"
+                ]
+            },
+            {
+                id: "plancha_frontal_mie",
+                section: "Bloque 3 — Core",
+                name: "Plancha frontal",
+                emoji: "🏋️‍♀️",
+                image: "img/img_plancha_frontal.png",
+                sets: "3", reps: "30-45 seg", rest: "45 seg",
+                hasLoad: false,
+                instructions: [
+                    "Apoyar antebrazos y puntas de pies",
+                    "Cuerpo recto de cabeza a talones",
+                    "Core apretado, glúteos activados",
+                    "NO dejar caer la cadera",
+                    "Respirar normal"
+                ]
+            },
+            {
+                id: "pallof_press",
+                section: "Bloque 3 — Core",
+                name: "Pallof press con polea",
+                emoji: "🔁",
+                image: "img/img_pallof.png",
+                sets: "3", reps: "10 c/lado", rest: "45 seg",
+                hasLoad: true,
+                loadLabel: "Peso polea (kg)",
+                instructions: [
+                    "Pararse de costado a la polea, a unos 60-70 cm",
+                    "Agarrar la manija con ambas manos frente al pecho",
+                    "Extender los brazos hacia adelante — sin rotar el torso",
+                    "Mantener 1-2 segundos extendido, luego volver",
+                    "La resistencia intenta rotarte — el core resiste",
+                    "Hacer las reps, girar 180° y repetir del otro lado"
+                ]
+            },
+            {
+                id: "estir_gluteo_mie",
+                section: "Vuelta a la calma",
+                name: "Estiramiento glúteo (figura 4)",
+                emoji: "🧘",
+                image: "img/img_estir_gluteo.png",
+                sets: "2", reps: "30 seg c/lado", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Acostado boca arriba",
+                    "Cruzar tobillo derecho sobre rodilla izquierda",
+                    "Llevar ambas piernas hacia el pecho",
+                    "Sentir el estiramiento profundo en el glúteo",
+                    "Cambiar de lado"
+                ]
+            },
+            {
+                id: "estir_isquios_mie",
+                section: "Vuelta a la calma",
+                name: "Estiramiento isquiotibiales",
+                emoji: "🧘‍♂️",
+                image: "img/img_estir_isquio.png",
+                sets: "2", reps: "30 seg c/pierna", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Sentado, una pierna extendida",
+                    "Otra pierna flexionada hacia adentro",
+                    "Inclinar torso hacia la pierna extendida",
+                    "Mantener espalda recta",
+                    "Sentir estiramiento detrás del muslo"
+                ]
+            },
+            {
+                id: "hielo_mie",
+                section: "Vuelta a la calma",
+                name: "Hielo en rodillas",
+                emoji: "🧊",
+                image: "",
+                sets: "-", reps: "10 min", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Aplicar hielo envuelto en toalla",
+                    "Nunca directo sobre la piel",
+                    "10 minutos en cada rodilla",
+                    "Solo si hay molestia post-entrenamiento"
+                ]
+            }
+        ]
+    },
+
+    viernes: {
+        subtitle: "Énfasis Metabólico + Unilateral",
+        exercises: [
+            {
+                id: "bici_vie",
+                section: "Calentamiento",
+                name: "Bici estática",
+                emoji: "🚴",
+                image: "img/img_bici.png",
+                sets: "-", reps: "5 min", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Ajustar asiento a altura de cadera",
+                    "Resistencia baja-media",
+                    "Ritmo cómodo, sin forzar rodillas",
+                    "Objetivo: entrar en calor, no cansar"
+                ]
+            },
+            {
+                id: "mov_tobillo_vie",
+                section: "Calentamiento",
+                name: "Movilidad tobillo y cadera",
+                emoji: "🦶",
+                image: "img/img_movilidad_cadera.png",
+                sets: "-", reps: "10 c/lado", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "De pie apoyado en pared, círculos de tobillo 10 hacia cada lado",
+                    "Balanceo de pierna adelante-atrás con rodilla extendida, 10 reps",
+                    "Balanceo lateral de pierna, 10 reps c/lado",
+                    "Movimiento controlado — no usar impulso"
+                ]
+            },
+            {
+                id: "step_down",
+                section: "Bloque 1 — Unilateral Piernas",
+                name: "Step-down excéntrico",
+                emoji: "👣",
+                image: "img/img_step_down.png",
+                sets: "3", reps: "8 c/pierna", rest: "90 seg",
+                hasLoad: false,
+                instructions: [
+                    "Pararse en un escalón o step de ~20 cm",
+                    "Pie de trabajo en el borde, pie libre en el aire",
+                    "Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo",
+                    "Volver subiendo con el mismo pie — no impulsarse con el pie libre",
+                    "Rodilla delantera alineada sobre el segundo dedo del pie",
+                    "Dolor máximo permitido: 3/10 — si supera ese umbral, reducir rango"
+                ]
+            },
+            {
+                id: "prensa_unilateral",
+                section: "Bloque 1 — Unilateral Piernas",
+                name: "Prensa unilateral (rango parcial)",
+                emoji: "🦿",
+                image: "img/img_prensa.png",
+                sets: "3", reps: "12 c/pierna", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso máquina (kg)",
+                instructions: [
+                    "Prensa con una sola pierna por vez",
+                    "Pie en el centro de la plataforma, ancho de cadera",
+                    "Flexión de rodilla máxima: 70° — no bajar más",
+                    "Empujar hasta casi extender — no bloquear la rodilla",
+                    "Bajar de forma lenta y controlada — 3 segundos",
+                    "Peso conservador: priorizar técnica y rango seguro"
+                ]
+            },
+            {
+                id: "elevacion_talones_uni",
+                section: "Bloque 1 — Unilateral Piernas",
+                name: "Elevación de talones unilateral",
+                emoji: "👟",
+                image: "img/img_elevacion_talones.png",
+                sets: "3", reps: "15 c/pierna", rest: "60 seg",
+                hasLoad: false,
+                instructions: [
+                    "De pie en el borde de un escalón o step",
+                    "Apoyar solo la punta del pie, talón en el aire",
+                    "Bajar el talón por debajo del nivel del escalón (estiramiento)",
+                    "Subir hasta la punta máxima — 1 segundo arriba",
+                    "Bajar controlado — 2-3 segundos",
+                    "Apoyarse en la pared si es necesario para equilibrio"
+                ]
+            },
+            {
+                id: "press_inclinado",
+                section: "Bloque 2 — Superior Combinado",
+                name: "Press inclinado con mancuernas",
+                emoji: "💪",
+                image: "img/img_press_inclinado.png",
+                sets: "3", reps: "10-12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna c/u (kg)",
+                instructions: [
+                    "Banco inclinado a 30-45°",
+                    "Mancuernas a altura del pecho superior",
+                    "Empujar hacia arriba y ligeramente juntar",
+                    "Bajar controlado — codos a 45° del cuerpo",
+                    "Escápulas retraídas durante todo el movimiento"
+                ]
+            },
+            {
+                id: "dominadas_asistidas",
+                section: "Bloque 2 — Superior Combinado",
+                name: "Jalón agarre neutro o dominadas asistidas",
+                emoji: "🔼",
+                image: "img/img_jalon.png",
+                sets: "3", reps: "10-12", rest: "90 seg",
+                hasLoad: true,
+                loadLabel: "Peso asistencia / máquina (kg)",
+                instructions: [
+                    "Agarre neutro (palmas enfrentadas) — más amigable para codos",
+                    "Tirar hacia el pecho superior con codos pegados al torso",
+                    "Retracción escapular al llegar arriba",
+                    "Subir controlado — no soltar el peso",
+                    "Si hay máquina de dominadas asistidas, usar ese peso de apoyo"
+                ]
+            },
+            {
+                id: "remo_unilateral",
+                section: "Bloque 2 — Superior Combinado",
+                name: "Remo unilateral con mancuerna",
+                emoji: "🚣",
+                image: "img/img_remo_uni.png",
+                sets: "3", reps: "10-12 c/brazo", rest: "60 seg",
+                hasLoad: true,
+                loadLabel: "Mancuerna (kg)",
+                instructions: [
+                    "Apoyar rodilla y mano contraria en un banco",
+                    "Espalda paralela al suelo, columna neutra",
+                    "Tirar la mancuerna hacia la costilla — no hacia el hombro",
+                    "Codo pasa ligeramente por encima del torso",
+                    "Bajar con control — recorrido completo"
+                ]
+            },
+            {
+                id: "core_rueda",
+                section: "Bloque 3 — Core",
+                name: "Rueda de abdomen / Ab wheel",
+                emoji: "⭕",
+                image: "img/img_rueda.png",
+                sets: "3", reps: "8-10", rest: "60 seg",
+                hasLoad: false,
+                instructions: [
+                    "Arrodillado, manos en la rueda frente a las rodillas",
+                    "Rodar hacia adelante extendiendo el cuerpo — espalda recta",
+                    "Llegar hasta donde se pueda sin que la espalda baje",
+                    "Volver jalando con el core — no con los hombros",
+                    "Si no hay rueda: plancha con deslizamiento en slider"
+                ]
+            },
+            {
+                id: "elevacion_piernas",
+                section: "Bloque 3 — Core",
+                name: "Elevación de piernas colgado",
+                emoji: "🏗️",
+                image: "img/img_elevacion_piernas.png",
+                sets: "3", reps: "10-12", rest: "60 seg",
+                hasLoad: false,
+                instructions: [
+                    "Colgado de barra con agarre prono",
+                    "Elevar rodillas hacia el pecho — o piernas extendidas si hay fuerza",
+                    "Bajar controlado — sin balancear el cuerpo",
+                    "Core activado en todo el recorrido",
+                    "Si hay soporte de codos (captain's chair), usarlo"
+                ]
+            },
+            {
+                id: "estir_cuadriceps_vie",
+                section: "Vuelta a la calma",
+                name: "Estiramiento cuádriceps",
+                emoji: "🧘",
+                image: "img/img_estir_cuadriceps.png",
+                sets: "2", reps: "30 seg c/pierna", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "De pie, agarrar tobillo llevando talón a glúteo",
+                    "Mantener rodillas juntas",
+                    "Empujar cadera ligeramente hacia adelante",
+                    "Estiramiento suave"
+                ]
+            },
+            {
+                id: "estir_gemelos_vie",
+                section: "Vuelta a la calma",
+                name: "Estiramiento gemelos",
+                emoji: "🧘‍♂️",
+                image: "img/img_estir_gemelos.png",
+                sets: "2", reps: "30 seg c/pierna", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "De pie frente a la pared, manos apoyadas",
+                    "Pierna trasera extendida con talón en el suelo",
+                    "Inclinar el cuerpo hacia la pared",
+                    "Sentir el estiramiento en el gemelo de la pierna trasera",
+                    "Cambiar de pierna"
+                ]
+            },
+            {
+                id: "hielo_vie",
+                section: "Vuelta a la calma",
+                name: "Hielo en rodillas",
+                emoji: "🧊",
+                image: "",
+                sets: "-", reps: "10 min", rest: "-",
+                hasLoad: false,
+                instructions: [
+                    "Aplicar hielo envuelto en toalla",
+                    "Nunca directo sobre la piel",
+                    "10 minutos en cada rodilla",
+                    "Solo si hay molestia post-entrenamiento"
+                ]
+            }
+        ]
+    }
+};
+
+// ── ESTADO ────────────────────────────────────────────────────────────────────
+let currentDay = 'lunes';
+let exercises = dayData[currentDay].exercises;
+let currentExercise = 0;
+
+// ── REGISTRO LOCAL ─────────────────────────────────────────────────────────────
+function storageKey(exerciseId) {
+    return `entreno_registro_${exerciseId}`;
+}
+
+function getLastRecord(exerciseId) {
+    try {
+        const raw = localStorage.getItem(storageKey(exerciseId));
+        return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+}
+
+function saveRecord(exerciseId, carga, reps) {
+    const record = {
+        carga: carga,
+        reps: reps,
+        fecha: new Date().toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' }),
+        hora: new Date().toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' })
+    };
+    try {
+        localStorage.setItem(storageKey(exerciseId), JSON.stringify(record));
+    } catch(e) {}
+    return record;
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function renderExercise(index) {
+    const exercise = exercises[index];
+    const lastRecord = exercise.hasLoad ? getLastRecord(exercise.id) : null;
+
+    const hasImage = !!exercise.image;
+
+    const registroBlock = exercise.hasLoad ? `
+        <div class="registro-block">
+            <h3>Registro de carga</h3>
+            <div class="registro-inputs">
+                <div class="registro-field">
+                    <label>${exercise.loadLabel || 'Carga'}</label>
+                    <input type="number" id="inputCarga" placeholder="—" inputmode="decimal" step="0.5">
+                </div>
+                <div class="registro-field">
+                    <label>Reps realizadas</label>
+                    <input type="number" id="inputReps" placeholder="—" inputmode="numeric">
+                </div>
+            </div>
+            <button class="btn-guardar" onclick="guardarRegistro('${exercise.id}')">Guardar registro</button>
+            <div class="ultimo-registro" id="ultimoRegistro">
+                ${lastRecord
+                    ? `Última vez: <span>${lastRecord.carga} kg · ${lastRecord.reps} reps</span> — ${lastRecord.fecha} ${lastRecord.hora}`
+                    : 'Sin registro previo'}
+            </div>
+        </div>
+    ` : '';
+
+    const html = `
+        <div class="card">
+            <div class="card-content">
+                <div class="exercise-header">
+                    <div class="exercise-title-block">
+                        <div class="exercise-name">${exercise.name}</div>
+                        <span class="section-badge">${exercise.section}</span>
+                    </div>
+                    <button class="btn-eye ${!hasImage ? 'no-image' : ''}"
+                        onclick="openLightbox('${exercise.image}', '${exercise.name}', '${exercise.emoji}')"
+                        title="Ver imagen">👁</button>
+                </div>
+
+                <div class="exercise-specs">
+                    ${exercise.sets !== '-' ? `<div class="spec">Series: ${exercise.sets}</div>` : ''}
+                    ${exercise.reps !== '-' ? `<div class="spec">Reps: ${exercise.reps}</div>` : ''}
+                    ${exercise.rest !== '-' ? `<div class="spec">Descanso: ${exercise.rest}</div>` : ''}
+                </div>
+
+                <div class="instructions">
+                    <h3>Instrucciones</h3>
+                    <ul>
+                        ${exercise.instructions.map(i => `<li>${i}</li>`).join('')}
+                    </ul>
+                </div>
+
+                ${registroBlock}
+
+
+                <div class="navigation">
+                    ${index > 0 ? '<button class="btn btn-prev" onclick="prevExercise()">← Anterior</button>' : ''}
+                    ${index < exercises.length - 1
+                        ? '<button class="btn btn-next" onclick="nextExercise()">Siguiente →</button>'
+                        : '<button class="btn btn-next" onclick="finishWorkout()">Finalizar ✓</button>'}
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('exerciseContainer').innerHTML = html;
+}
+
+function guardarRegistro(exerciseId) {
+    const carga = document.getElementById('inputCarga').value;
+    const reps  = document.getElementById('inputReps').value;
+    if (!carga && !reps) return;
+    const record = saveRecord(exerciseId, carga || '—', reps || '—');
+    const el = document.getElementById('ultimoRegistro');
+    if (el) el.innerHTML = `Última vez: <span>${record.carga} kg · ${record.reps} reps</span> — ${record.fecha} ${record.hora}`;
+    document.getElementById('inputCarga').value = '';
+    document.getElementById('inputReps').value = '';
+}
+
+// ── LIGHTBOX ──────────────────────────────────────────────────────────────────
+function openLightbox(imgSrc, name, emoji) {
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightboxImg');
+    const emojiEl = document.getElementById('lightboxEmoji');
+    const nameEl = document.getElementById('lightboxName');
+
+    nameEl.textContent = name;
+    img.style.display = 'block';
+    emojiEl.style.display = 'none';
+    img.src = imgSrc;
+    emojiEl.textContent = emoji;
+    lb.classList.add('open');
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────────────────────
+function switchDay(day, el) {
+    currentDay = day;
+    exercises = dayData[day].exercises;
+
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+
+    currentExercise = 0;
+
+    if (exercises.length > 0) {
+        renderExercise(0);
+    } else {
+        document.getElementById('exerciseContainer').innerHTML =
+            '<div class="empty-state">Rutina próximamente</div>';
+        document.getElementById('progressFill').style.width = '0%';
+    }
+}
+
+function nextExercise() {
+    if (currentExercise < exercises.length - 1) {
+        currentExercise++;
+        renderExercise(currentExercise);
+        document.querySelector('.card-content')?.scrollTo(0, 0);
+    }
+}
+
+function prevExercise() {
+    if (currentExercise > 0) {
+        currentExercise--;
+        renderExercise(currentExercise);
+        document.querySelector('.card-content')?.scrollTo(0, 0);
+    }
+}
+
+function finishWorkout() {
+    if (confirm('¿Reiniciar la rutina?')) {
+        currentExercise = 0;
+        renderExercise(0);
+    }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderExercise(0);
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('config/service-worker.js')
+        .then(() => console.log('SW registered'))
+        .catch(err => console.log('SW error:', err));
+}
+</script>
+</body>
+</html>
