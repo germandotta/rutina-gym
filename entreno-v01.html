@@ -948,8 +948,24 @@ function finishWorkout() {
     if (confirm('¿Reiniciar la rutina?')) { currentExercise = 0; renderExercise(0); }
 }
 
+// ── WAKE LOCK ─────────────────────────────────────────────────────────────────
+let wakeLock = null;
+
+async function activarWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+        } catch(e) {}
+    }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') activarWakeLock();
+});
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderExercise(0);
+activarWakeLock();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('config/service-worker.js')
