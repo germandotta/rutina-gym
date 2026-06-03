@@ -411,6 +411,28 @@
             cursor: pointer;
         }
 
+        /* INSTRUCCIONES COLAPSABLES */
+        .instructions-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .instructions-toggle {
+            font-size: 11px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .instructions-body {
+            display: none;
+            margin-top: 8px;
+        }
+
+        .instructions-body.open { display: block; }
+
         /* HISTÓRICO */
         .historico-titulo {
             font-size: 10px;
@@ -757,8 +779,13 @@ function renderExercise(index) {
             <div class="exercise-scroll">
                 ${timerBlock}
                 <div class="instructions">
-                    <h3>Instrucciones</h3>
-                    <ul>${exercise.instructions.map(i => `<li>${i}</li>`).join('')}</ul>
+                    <div class="instructions-header" onclick="toggleInstrucciones(this)">
+                        <h3 style="margin-bottom:0">Instrucciones</h3>
+                        <span class="instructions-toggle">Ver ▾</span>
+                    </div>
+                    <div class="instructions-body">
+                        <ul>${exercise.instructions.map(i => `<li>${i}</li>`).join('')}</ul>
+                    </div>
                 </div>
                 ${registroHTML}
                 ${restBlock}
@@ -796,6 +823,13 @@ function toggleRestTimer(segundos) {
             if (btn) { btn.textContent = 'Iniciar'; btn.classList.remove('stop'); }
         }
     }, 1000);
+}
+
+function toggleInstrucciones(header) {
+    const body = header.nextElementSibling;
+    const toggle = header.querySelector('.instructions-toggle');
+    const open = body.classList.toggle('open');
+    toggle.textContent = open ? 'Ocultar ▴' : 'Ver ▾';
 }
 
 // ── LIGHTBOX ──────────────────────────────────────────────────────────────────
