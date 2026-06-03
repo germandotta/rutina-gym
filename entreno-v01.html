@@ -430,6 +430,62 @@
             cursor: pointer;
         }
 
+        /* TABATA */
+        .tabata-block {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tabata-estado {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #555;
+        }
+
+        .tabata-estado.ejercicio { color: #10b981; }
+        .tabata-estado.descanso { color: #f59e0b; }
+
+        .tabata-tiempo {
+            font-size: 52px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #10b981;
+            line-height: 1;
+        }
+
+        .tabata-tiempo.descanso { color: #f59e0b; }
+
+        .tabata-series {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .tabata-series span { color: #e0e0e0; font-weight: 700; }
+
+        .btn-tabata {
+            background: rgba(16,185,129,0.2);
+            border: 1px solid rgba(16,185,129,0.4);
+            color: #10b981;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-tabata.stop {
+            background: rgba(239,68,68,0.15);
+            border-color: rgba(239,68,68,0.3);
+            color: #ef4444;
+        }
+
         /* INSTRUCCIONES COLAPSABLES */
         .instructions-header {
             display: flex;
@@ -553,8 +609,8 @@ const dayData = {
             { id: "press_militar", section: "Bloque 2 — Empuje Superior", name: "Press militar sentado", emoji: "🏋️", image: "img/img_press_militar.png", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", restSeg: 90, instructions: ["Sentado con espalda apoyada","Mancuernas a altura de hombros","Empujar hacia arriba sin arquear espalda","Bajar controlado hasta hombros","Core activado durante todo el movimiento"] },
             { id: "elevaciones_laterales", section: "Bloque 2 — Empuje Superior", name: "Elevaciones laterales", emoji: "🙆", image: "img/img_elevaciones.png", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", restSeg: 60, instructions: ["De pie, mancuernas a los lados","Levantar brazos lateralmente hasta altura de hombros","Codos ligeramente flexionados","Bajar controlado — 2-3 segundos de bajada","No usar impulso — peso moderado"] },
             { id: "fondos_banco", section: "Bloque 2 — Empuje Superior", name: "Fondos en banco", emoji: "💺", image: "img/img_fondos.png", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, restSeg: 60, instructions: ["Manos en borde de banco, dedos hacia adelante","Piernas extendidas adelante (más difícil) o flexionadas (más fácil)","Bajar flexionando codos hasta 90°","Empujar para subir — codos no van más allá de 90°","Core firme, no hundirse entre los hombros"] },
-            { id: "plancha_frontal", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", image: "img/img_plancha_frontal.png", sets: "3", reps: "30-45 seg", rest: "45 seg", hasLoad: false, timerSeg: 45, restSeg: 45, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal — no aguantar el aire"]  },
-            { id: "plancha_lateral", section: "Bloque 3 — Core", name: "Plancha lateral", emoji: "⬅️", image: "img/img_plancha_lateral.png", sets: "2", reps: "20-30 seg c/lado", rest: "45 seg", hasLoad: false, timerSeg: 30, restSeg: 45, instructions: ["Apoyar antebrazo y borde externo del pie","Cuerpo recto en posición lateral","Cadera elevada — no dejar caer","Hacer un lado, descansar, cambiar","Core activado todo el tiempo"] },
+            { id: "plancha_frontal", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", image: "img/img_plancha_frontal.png", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, tabata: { ejercSeg: 45, descSeg: 45, series: 3 }, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal — no aguantar el aire"] },
+            { id: "plancha_lateral", section: "Bloque 3 — Core", name: "Plancha lateral", emoji: "⬅️", image: "img/img_plancha_lateral.png", sets: "2", reps: "30 seg c/lado", rest: "30 seg", hasLoad: false, tabata: { ejercSeg: 30, descSeg: 30, series: 2 }, instructions: ["Apoyar antebrazo y borde externo del pie","Cuerpo recto en posición lateral","Cadera elevada — no dejar caer","Hacer un lado, descansar, cambiar","Core activado todo el tiempo"] },
             { id: "estir_cuadriceps", section: "Vuelta a la calma", name: "Estiramiento cuádriceps", emoji: "🧘", image: "img/img_estir_cuadriceps.png", sets: "2", reps: "30 seg c/pierna", rest: "-", hasLoad: false, timerSeg: 30, instructions: ["De pie, agarrar tobillo llevando talón a glúteo","Mantener rodillas juntas","Empujar cadera ligeramente hacia adelante","Estiramiento suave — no forzar"] },
             { id: "estir_isquios", section: "Vuelta a la calma", name: "Estiramiento isquiotibiales", emoji: "🧘‍♂️", image: "img/img_estir_isquio.png", sets: "2", reps: "30 seg c/pierna", rest: "-", hasLoad: false, timerSeg: 30, instructions: ["Sentado, una pierna extendida","Otra pierna flexionada hacia adentro","Inclinar torso hacia la pierna extendida","Mantener espalda recta — no redondear","Sentir estiramiento detrás del muslo"] },
             { id: "hielo", section: "Vuelta a la calma", name: "Hielo en rodillas", emoji: "🧊", image: "", sets: "-", reps: "10 min", rest: "-", hasLoad: false, timerSeg: 600, instructions: ["Aplicar hielo envuelto en toalla","Nunca directo sobre la piel","10 minutos en cada rodilla","Solo si hay molestia post-entrenamiento"] }
@@ -572,7 +628,7 @@ const dayData = {
             { id: "remo_maquina", section: "Bloque 2 — Tracción Superior", name: "Remo en máquina / polea baja", emoji: "🚣", image: "img/Remo_en_maquina.png", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Peso (kg)", restSeg: 90, instructions: ["Sentado frente a la polea baja con agarre neutro","Espalda erguida, pecho fuera","Tirar hacia el abdomen llevando codos hacia atrás","Apretar escápulas en la posición final — 1 segundo","Extender brazos de forma controlada — no inclinarse hacia adelante"] },
             { id: "curl_biceps", section: "Bloque 2 — Tracción Superior", name: "Curl de bíceps con mancuernas", emoji: "💪", image: "img/Curl_de_biceps.png", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", restSeg: 60, instructions: ["De pie, mancuernas a los costados con agarre supino","Flexionar codos llevando las mancuernas hacia los hombros","Codos pegados al torso — no moverlos hacia adelante","Bajar controlado — resistir el peso en la bajada","Alternar brazos o hacer ambos juntos"] },
             { id: "face_pull", section: "Bloque 2 — Tracción Superior", name: "Face pull con polea", emoji: "🎯", image: "img/Face_pull_con_polea.png", sets: "3", reps: "15", rest: "60 seg", hasLoad: true, loadLabel: "Peso (kg)", restSeg: 60, instructions: ["Polea alta con cuerda, agarre neutro en cada extremo","Dar un paso atrás — cuerpo ligeramente inclinado","Tirar la cuerda hacia la cara separando los extremos","Codos a la altura de los hombros o ligeramente más altos","Apretar escápulas y rotadores externos al final","Peso liviano — priorizar técnica y recorrido completo"] },
-            { id: "plancha_frontal_mie", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", image: "img/img_plancha_frontal.png", sets: "3", reps: "30-45 seg", rest: "45 seg", hasLoad: false, timerSeg: 45, restSeg: 45, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
+            { id: "plancha_frontal_mie", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", image: "img/img_plancha_frontal.png", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, tabata: { ejercSeg: 45, descSeg: 45, series: 3 }, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
             { id: "pallof_press", section: "Bloque 3 — Core", name: "Pallof press con polea", emoji: "🔁", image: "img/Pallof_press_con_polea.png", sets: "3", reps: "10 c/lado", rest: "45 seg", hasLoad: true, loadLabel: "Peso polea (kg)", restSeg: 45, instructions: ["Pararse de costado a la polea, a unos 60-70 cm","Agarrar la manija con ambas manos frente al pecho","Extender los brazos hacia adelante — sin rotar el torso","Mantener 1-2 segundos extendido, luego volver","La resistencia intenta rotarte — el core resiste","Hacer las reps, girar 180° y repetir del otro lado"] },
             { id: "estir_gluteo_mie", section: "Vuelta a la calma", name: "Estiramiento glúteo (figura 4)", emoji: "🧘", image: "img/Estiramiento_gluteo.png", sets: "2", reps: "30 seg c/lado", rest: "-", hasLoad: false, timerSeg: 30, instructions: ["Acostado boca arriba","Cruzar tobillo derecho sobre rodilla izquierda","Llevar ambas piernas hacia el pecho","Sentir el estiramiento profundo en el glúteo","Cambiar de lado"] },
             { id: "estir_isquios_mie", section: "Vuelta a la calma", name: "Estiramiento isquiotibiales", emoji: "🧘‍♂️", image: "img/img_estir_isquio.png", sets: "2", reps: "30 seg c/pierna", rest: "-", hasLoad: false, timerSeg: 30, instructions: ["Sentado, una pierna extendida","Otra pierna flexionada hacia adentro","Inclinar torso hacia la pierna extendida","Mantener espalda recta","Sentir estiramiento detrás del muslo"] },
@@ -743,10 +799,11 @@ function guardarDesdeModal() {
     const carga = document.getElementById('modalCarga').value;
     const reps = document.getElementById('modalReps').value;
     if (!carga && !reps) { cerrarModal(); return; }
-    const record = addRecord(activeExerciseId, carga || '—', reps || '—');
-    enviarASheets(activeExerciseId, carga || '—', reps || '—', record);
+    const id = activeExerciseId;
+    const record = addRecord(id, carga || '—', reps || '—');
+    enviarASheets(id, carga || '—', reps || '—', record);
     cerrarModal();
-    renderRegistroResumen(activeExerciseId);
+    renderRegistroResumen(id);
 }
 
 function renderRegistroResumen(exerciseId) {
@@ -767,27 +824,29 @@ function borrarRegistro(exerciseId) {
 // ── RENDER ─────────────────────────────────────────────────────────────────────
 function renderExercise(index) {
     stopTimer();
+    if (tabataInterval) { clearInterval(tabataInterval); tabataInterval = null; tabataRunning = false; }
     const exercise = exercises[index];
     const hasImage = !!exercise.image;
-    const hasTimer = !!exercise.timerSeg;
-    const hasRest = !!exercise.restSeg;
+    const hasTimer = !!exercise.timerSeg && !exercise.tabata;
+    const hasTabata = !!exercise.tabata;
     const hist = exercise.hasLoad ? getHistory(exercise.id) : [];
     const last = hist[0];
 
     const isCompleted = completedExercises.has(exercise.id);
+
+    const tabataBlock = hasTabata ? `
+        <div class="tabata-block">
+            <div class="tabata-estado" id="tabataEstado">Lista</div>
+            <div class="tabata-tiempo" id="tabataTiempo">${formatTime(exercise.tabata.ejercSeg)}</div>
+            <div class="tabata-series">Serie <span id="tabataSerie">1</span> de <span>${exercise.tabata.series}</span></div>
+            <button class="btn-tabata" id="tabataBtn" onclick="toggleTabata(${exercise.tabata.ejercSeg}, ${exercise.tabata.descSeg}, ${exercise.tabata.series})">Iniciar</button>
+        </div>` : '';
 
     const timerBlock = hasTimer ? `
         <div class="timer-block">
             <div class="timer-display" id="timerDisplay">${formatTime(exercise.timerSeg)}</div>
             <span class="timer-label">Ejercicio</span>
             <button class="btn-timer" id="timerBtn" onclick="toggleTimer(${exercise.timerSeg}, 'exercise')">Iniciar</button>
-        </div>` : '';
-
-    const restBlock = hasRest ? `
-        <div class="timer-block">
-            <div class="timer-display" id="restDisplay">${formatTime(exercise.restSeg)}</div>
-            <span class="timer-label">Descanso</span>
-            <button class="btn-timer" id="restBtn" onclick="toggleRestTimer(${exercise.restSeg})">Iniciar</button>
         </div>` : '';
 
     const registroHTML = exercise.hasLoad ? `
@@ -817,6 +876,7 @@ function renderExercise(index) {
                 </div>
             </div>
             <div class="exercise-scroll">
+                ${tabataBlock}
                 ${timerBlock}
                 <div class="instructions">
                     <div class="instructions-header" onclick="toggleInstrucciones(this)">
@@ -828,7 +888,6 @@ function renderExercise(index) {
                     </div>
                 </div>
                 ${registroHTML}
-                ${restBlock}
                 <button class="btn-complete ${isCompleted ? 'done' : ''}" onclick="toggleComplete('${exercise.id}', '${exercise.name}')">
                     ${isCompleted ? '✓ Completado' : 'Marcar como completado'}
                 </button>
@@ -844,27 +903,64 @@ function renderExercise(index) {
     document.getElementById('exerciseContainer').innerHTML = html;
 }
 
-let restInterval = null;
-function toggleRestTimer(segundos) {
-    const btn = document.getElementById('restBtn');
-    const display = document.getElementById('restDisplay');
-    if (restInterval) {
-        clearInterval(restInterval);
-        restInterval = null;
+// ── TABATA ────────────────────────────────────────────────────────────────────
+let tabataInterval = null;
+let tabataRunning = false;
+
+function toggleTabata(ejercSeg, descSeg, totalSeries) {
+    if (tabataRunning) {
+        clearInterval(tabataInterval);
+        tabataInterval = null;
+        tabataRunning = false;
+        const btn = document.getElementById('tabataBtn');
         if (btn) { btn.textContent = 'Iniciar'; btn.classList.remove('stop'); }
         return;
     }
-    let s = segundos;
-    display.classList.add('running');
+    tabataRunning = true;
+    const btn = document.getElementById('tabataBtn');
     if (btn) { btn.textContent = 'Detener'; btn.classList.add('stop'); }
-    restInterval = setInterval(() => {
-        s--;
-        if (display) display.textContent = formatTime(s);
-        if (s <= 0) {
-            clearInterval(restInterval); restInterval = null;
-            if (display) { display.classList.remove('running'); display.classList.add('done'); display.textContent = '✓'; }
-            if (btn) { btn.textContent = 'Iniciar'; btn.classList.remove('stop'); }
+
+    let serie = 1;
+    let fase = 'ejercicio'; // 'ejercicio' | 'descanso'
+    let seg = ejercSeg;
+
+    function actualizarUI() {
+        const tiempo = document.getElementById('tabataTiempo');
+        const estado = document.getElementById('tabataEstado');
+        const serieEl = document.getElementById('tabataSerie');
+        if (tiempo) { tiempo.textContent = formatTime(seg); tiempo.classList.toggle('descanso', fase === 'descanso'); }
+        if (estado) { estado.textContent = fase === 'ejercicio' ? '🏋️ Ejercicio' : '😮‍💨 Descanso'; estado.className = 'tabata-estado ' + fase; }
+        if (serieEl) serieEl.textContent = serie;
+    }
+
+    actualizarUI();
+
+    tabataInterval = setInterval(() => {
+        seg--;
+        if (seg < 0) {
+            if (fase === 'ejercicio') {
+                if (serie >= totalSeries) {
+                    // Terminó
+                    clearInterval(tabataInterval);
+                    tabataInterval = null;
+                    tabataRunning = false;
+                    const tiempo = document.getElementById('tabataTiempo');
+                    const estado = document.getElementById('tabataEstado');
+                    const btn = document.getElementById('tabataBtn');
+                    if (tiempo) tiempo.textContent = '✓';
+                    if (estado) { estado.textContent = 'Completado'; estado.className = 'tabata-estado ejercicio'; }
+                    if (btn) { btn.textContent = 'Reiniciar'; btn.classList.remove('stop'); btn.onclick = () => { serie = 1; fase = 'ejercicio'; seg = ejercSeg; tabataRunning = false; toggleTabata(ejercSeg, descSeg, totalSeries); }; }
+                    return;
+                }
+                fase = 'descanso';
+                seg = descSeg;
+            } else {
+                serie++;
+                fase = 'ejercicio';
+                seg = ejercSeg;
+            }
         }
+        actualizarUI();
     }, 1000);
 }
 
@@ -948,24 +1044,8 @@ function finishWorkout() {
     if (confirm('¿Reiniciar la rutina?')) { currentExercise = 0; renderExercise(0); }
 }
 
-// ── WAKE LOCK ─────────────────────────────────────────────────────────────────
-let wakeLock = null;
-
-async function activarWakeLock() {
-    if ('wakeLock' in navigator) {
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-        } catch(e) {}
-    }
-}
-
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') activarWakeLock();
-});
-
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderExercise(0);
-activarWakeLock();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('config/service-worker.js')
