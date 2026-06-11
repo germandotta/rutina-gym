@@ -2,7 +2,7 @@
   "name": "Entreno",
   "short_name": "Entreno",
   "description": "Rutina de rehabilitación de rodillas",
-  "start_url": "../entreno-v01.html",
+  "start_url": "../entreno-v02.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#10b981",
