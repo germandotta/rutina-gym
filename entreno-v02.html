@@ -876,20 +876,21 @@ async function cargarDesdeSheets() {
         // Agrupar por ejercicio, ordenar por fecha/hora desc, guardar en localStorage
         const histMap = {};
         json.data.forEach(row => {
-            const nombre = row['ejercicio'];
-            const carga = row['carga'];
-            const reps = row['reps'];
-            const completado = row['completado'];
-            if (!nombre || completado === 'sí') return; // saltar filas de completado
+            const nombre = row['Ejercicio'];
+            const carga = row['Carga'];
+            const reps = row['Reps'];
+            const completado = row['Completado'];
+            if (!nombre || completado === 'sí') return;
             if (!carga && !reps) return;
+            if (String(carga) === '—' && String(reps) === '—') return;
             const id = nameToId[nombre];
             if (!id) return;
             if (!histMap[id]) histMap[id] = [];
             histMap[id].push({
                 carga: String(carga || '—'),
                 reps: String(reps || '—'),
-                fecha: String(row['fecha'] || ''),
-                hora: String(row['hora'] || '')
+                fecha: String(row['Fecha'] ? new Date(row['Fecha']).toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''),
+                hora: String(row['Hora'] || '')
             });
         });
 
@@ -904,8 +905,9 @@ async function cargarDesdeSheets() {
 }
 
 async function init() {
-    await cargarDesdeSheets();
-    renderList('lunes');
+    renderList('lunes'); // render inmediato con localStorage
+    await cargarDesdeSheets(); // actualiza en segundo plano
+    renderList('lunes'); // re-render con datos del Sheet
 }
 
 init();
