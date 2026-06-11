@@ -860,7 +860,55 @@ async function openLightbox(imgSrc, name, emoji) {
 function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
-renderList('lunes');
+
+// Construir mapa nombre -> id para todos los ejercicios
+const nameToId = {};
+Object.values(dayData).forEach(day => {
+    day.exercises.forEach(ex => { nameToId[ex.name] = ex.id; });
+});
+
+async function cargarDesdeSheets() {
+    try {
+        const res = await fetch(SHEETS_URL);
+        const json = await res.json();
+        if (!json.ok || !json.data) return;
+
+        // Agrupar por ejercicio, ordenar por fecha/hora desc, guardar en localStorage
+        const histMap = {};
+        json.data.forEach(row => {
+            const nombre = row['ejercicio'];
+            const carga = row['carga'];
+            const reps = row['reps'];
+            const completado = row['completado'];
+            if (!nombre || completado === 'sí') return; // saltar filas de completado
+            if (!carga && !reps) return;
+            const id = nameToId[nombre];
+            if (!id) return;
+            if (!histMap[id]) histMap[id] = [];
+            histMap[id].push({
+                carga: String(carga || '—'),
+                reps: String(reps || '—'),
+                fecha: String(row['fecha'] || ''),
+                hora: String(row['hora'] || '')
+            });
+        });
+
+        // Guardar en localStorage (más reciente primero, máx 10)
+        Object.entries(histMap).forEach(([id, records]) => {
+            const sorted = records.reverse().slice(0, 10);
+            try { localStorage.setItem(historyKey(id), JSON.stringify(sorted)); } catch(e) {}
+        });
+    } catch(e) {
+        // Si falla, usa localStorage existente
+    }
+}
+
+async function init() {
+    await cargarDesdeSheets();
+    renderList('lunes');
+}
+
+init();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('config/service-worker.js').catch(() => {});
