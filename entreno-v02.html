@@ -196,48 +196,7 @@
             border: 1px solid rgba(16,185,129,0.25);
         }
 
-        /* INSTRUCCIONES */
-        .instr-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            user-select: none;
-            padding: 8px 0 4px;
-        }
 
-        .instr-header h3 {
-            font-size: 10px;
-            font-weight: 700;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .instr-toggle { font-size: 10px; color: #444; font-weight: 600; }
-
-        .instr-body { display: none; }
-        .instr-body.open { display: block; }
-
-        .instr-body ul { list-style: none; }
-
-        .instr-body li {
-            padding: 4px 0 4px 16px;
-            position: relative;
-            font-size: 13px;
-            line-height: 1.35;
-            color: #aaa;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-
-        .instr-body li:last-child { border-bottom: none; }
-
-        .instr-body li:before {
-            content: "•";
-            position: absolute;
-            left: 4px;
-            color: #10b981;
-        }
 
         /* REGISTRO */
         .registro-row {
@@ -273,19 +232,54 @@
             opacity: 0.7;
         }
 
-        /* BOTÓN OJO */
-        .btn-eye {
+        /* BOTONES DE ACCIÓN */
+        .action-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            flex: 1;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.4);
-            font-size: 12px;
-            padding: 6px 12px;
-            border-radius: 6px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            align-self: flex-start;
+        }
+
+
+        /* INSTRUCCIONES INLINE */
+        .instr-inline {
+            display: none;
+            list-style: none;
+            flex-direction: column;
+            gap: 12px;
+            padding: 6px 4px 4px;
+        }
+
+        .instr-inline.open { display: flex; }
+
+        .instr-inline li {
+            font-size: 17px;
+            line-height: 1.45;
+            color: #ddd;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .instr-inline li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
         }
 
         /* LIGHTBOX */
@@ -467,6 +461,7 @@
     <button class="lightbox-close" onclick="closeLightbox()">Cerrar</button>
 </div>
 
+
 <!-- MODAL REGISTRO -->
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal-sheet">
@@ -475,7 +470,7 @@
             <div class="modal-subtitle" id="modalSubtitle"></div>
         </div>
         <div class="modal-inputs">
-            <div class="modal-field">
+            <div class="modal-field" id="modalCargaField">
                 <label id="modalCargaLabel">Carga</label>
                 <input type="number" id="modalCarga" placeholder="—" inputmode="decimal" step="0.5">
             </div>
@@ -508,7 +503,7 @@ const dayData = {
             { id: "press_pecho", section: "Bloque 2 — Empuje Superior", name: "Press de pecho", emoji: "💪", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Acostado en banco plano","Mancuernas a altura del pecho","Empujar hacia arriba y ligeramente juntar","Bajar controlado hasta nivel pecho","Escápulas retraídas — hombros atrás y abajo"] },
             { id: "press_militar", section: "Bloque 2 — Empuje Superior", name: "Press militar sentado", emoji: "🏋️", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Sentado con espalda apoyada","Mancuernas a altura de hombros","Empujar hacia arriba sin arquear espalda","Bajar controlado hasta hombros","Core activado durante todo el movimiento"] },
             { id: "elevaciones_laterales", section: "Bloque 2 — Empuje Superior", name: "Elevaciones laterales", emoji: "🙆", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["De pie, mancuernas a los lados","Levantar brazos lateralmente hasta altura de hombros","Codos ligeramente flexionados","Bajar controlado — 2-3 segundos de bajada","No usar impulso — peso moderado"] },
-            { id: "fondos_banco", section: "Bloque 2 — Empuje Superior", name: "Fondos en banco", emoji: "💺", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, instructions: ["Manos en borde de banco, dedos hacia adelante","Piernas extendidas adelante (más difícil) o flexionadas (más fácil)","Bajar flexionando codos hasta 90°","Empujar para subir — codos no van más allá de 90°","Core firme, no hundirse entre los hombros"] },
+            { id: "fondos_banco", section: "Bloque 2 — Empuje Superior", name: "Fondos en banco", emoji: "💺", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["Manos en borde de banco, dedos hacia adelante","Piernas extendidas adelante (más difícil) o flexionadas (más fácil)","Bajar flexionando codos hasta 90°","Empujar para subir — codos no van más allá de 90°","Core firme, no hundirse entre los hombros"] },
             { id: "plancha_frontal", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
             { id: "plancha_lateral", section: "Bloque 3 — Core", name: "Plancha lateral", emoji: "⬅️", sets: "2", reps: "30 seg c/lado", rest: "30 seg", hasLoad: false, instructions: ["Apoyar antebrazo y borde externo del pie","Cuerpo recto en posición lateral","Cadera elevada — no dejar caer","Hacer un lado, descansar, cambiar","Core activado todo el tiempo"] },
             { id: "estir_cuadriceps", section: "Vuelta a la calma", name: "Estiramiento cuádriceps", emoji: "🧘", sets: "2", reps: "30 seg c/pierna", rest: "-", hasLoad: false, instructions: ["De pie, agarrar tobillo llevando talón a glúteo","Mantener rodillas juntas","Empujar cadera ligeramente hacia adelante","Estiramiento suave"] },
@@ -540,14 +535,14 @@ const dayData = {
         exercises: [
             { id: "bici_vie", section: "Calentamiento", name: "Bici estática", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, instructions: ["Ajustar asiento a altura de cadera","Resistencia baja-media","Ritmo cómodo, sin forzar rodillas","Objetivo: entrar en calor, no cansar"] },
             { id: "mov_tobillo_vie", section: "Calentamiento", name: "Movilidad tobillo y cadera", emoji: "🦶", sets: "-", reps: "10 c/lado", rest: "-", hasLoad: false, instructions: ["De pie apoyado en pared, círculos de tobillo 10 hacia cada lado","Balanceo de pierna adelante-atrás con rodilla extendida, 10 reps","Balanceo lateral de pierna, 10 reps c/lado","Movimiento controlado"] },
-            { id: "step_down", section: "Bloque 1 — Unilateral Piernas", name: "Step-down excéntrico", emoji: "👣", sets: "3", reps: "8 c/pierna", rest: "90 seg", hasLoad: false, instructions: ["Pararse en un escalón o step de ~20 cm","Pie de trabajo en el borde, pie libre en el aire","Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo","Volver subiendo con el mismo pie","Rodilla delantera alineada sobre el segundo dedo del pie","Dolor máximo permitido: 3/10"] },
+            { id: "step_down", section: "Bloque 1 — Unilateral Piernas", name: "Step-down excéntrico", emoji: "👣", sets: "3", reps: "8 c/pierna", rest: "90 seg", hasLoad: false, trackReps: true, instructions: ["Pararse en un escalón o step de ~20 cm","Pie de trabajo en el borde, pie libre en el aire","Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo","Volver subiendo con el mismo pie","Rodilla delantera alineada sobre el segundo dedo del pie","Dolor máximo permitido: 3/10"] },
             { id: "prensa_unilateral", section: "Bloque 1 — Unilateral Piernas", name: "Prensa unilateral (rango parcial)", emoji: "🦿", sets: "3", reps: "12 c/pierna", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Prensa con una sola pierna por vez","Pie en el centro de la plataforma, ancho de cadera","Flexión de rodilla máxima: 70° — no bajar más","Empujar hasta casi extender — no bloquear la rodilla","Bajar de forma lenta y controlada — 3 segundos","Peso conservador: priorizar técnica"] },
-            { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: false, instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
+            { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
             { id: "press_inclinado", section: "Bloque 2 — Superior Combinado", name: "Press inclinado con mancuernas", emoji: "💪", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Banco inclinado a 30-45°","Mancuernas a altura del pecho superior","Empujar hacia arriba y ligeramente juntar","Bajar controlado — codos a 45° del cuerpo","Escápulas retraídas durante todo el movimiento"] },
             { id: "dominadas_asistidas", section: "Bloque 2 — Superior Combinado", name: "Jalón agarre neutro o dominadas asistidas", emoji: "🔼", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Peso asistencia / máquina (kg)", instructions: ["Agarre neutro (palmas enfrentadas)","Tirar hacia el pecho superior con codos pegados al torso","Retracción escapular al llegar arriba","Subir controlado — no soltar el peso","Si hay máquina de dominadas asistidas, usar ese peso de apoyo"] },
             { id: "remo_unilateral", section: "Bloque 2 — Superior Combinado", name: "Remo unilateral con mancuerna", emoji: "🚣", sets: "3", reps: "10-12 c/brazo", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna (kg)", instructions: ["Apoyar rodilla y mano contraria en un banco","Espalda paralela al suelo, columna neutra","Tirar la mancuerna hacia la costilla","Codo pasa ligeramente por encima del torso","Bajar con control"] },
             { id: "crunch_polea", section: "Bloque 3 — Core", name: "Crunch en polea", emoji: "🔗", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Peso polea (kg)", instructions: ["Polea alta con cuerda, de rodillas frente a la máquina","Agarrar la cuerda detrás de la nuca o a los lados de la cabeza","Flexionar el tronco llevando los codos hacia las rodillas","No tirar con los brazos — el movimiento viene del abdomen","Volver controlado sin hiperextender la espalda","Peso moderado — priorizar recorrido completo"] },
-            { id: "elevacion_piernas", section: "Bloque 3 — Core", name: "Elevación de piernas colgado", emoji: "🏗️", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, instructions: ["Colgado de barra con agarre prono","Elevar rodillas hacia el pecho — o piernas extendidas si hay fuerza","Bajar controlado — sin balancear el cuerpo","Core activado en todo el recorrido","Si hay soporte de codos (captain's chair), usarlo"] },
+            { id: "elevacion_piernas", section: "Bloque 3 — Core", name: "Elevación de piernas colgado", emoji: "🏗️", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["Colgado de barra con agarre prono","Elevar rodillas hacia el pecho — o piernas extendidas si hay fuerza","Bajar controlado — sin balancear el cuerpo","Core activado en todo el recorrido","Si hay soporte de codos (captain's chair), usarlo"] },
             { id: "estir_cuadriceps_vie", section: "Vuelta a la calma", name: "Estiramiento cuádriceps", emoji: "🧘", sets: "2", reps: "30 seg c/pierna", rest: "-", hasLoad: false, instructions: ["De pie, agarrar tobillo llevando talón a glúteo","Mantener rodillas juntas","Empujar cadera ligeramente hacia adelante","Estiramiento suave"] },
             { id: "estir_gemelos_vie", section: "Vuelta a la calma", name: "Estiramiento gemelos", emoji: "🧘‍♂️", sets: "2", reps: "30 seg c/pierna", rest: "-", hasLoad: false, instructions: ["De pie frente a la pared, manos apoyadas","Pierna trasera extendida con talón en el suelo","Inclinar el cuerpo hacia la pared","Sentir el estiramiento en el gemelo de la pierna trasera","Cambiar de pierna"] },
             { id: "hielo_vie", section: "Vuelta a la calma", name: "Hielo en rodillas", emoji: "🧊", sets: "-", reps: "10 min", rest: "-", hasLoad: false, instructions: ["Aplicar hielo envuelto en toalla","Nunca directo sobre la piel","10 minutos en cada rodilla","Solo si hay molestia"] }
@@ -597,21 +592,38 @@ function enviarASheets(exerciseId, carga, reps, record) {
     }).catch(() => {});
 }
 
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function findExercise(exerciseId) {
+    return dayData[currentDay].exercises.find(e => e.id === exerciseId);
+}
+
+function formatRecord(ex, r) {
+    return ex.hasLoad ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
+}
+
 // ── MODAL ──────────────────────────────────────────────────────────────────────
 function abrirModal(exerciseId) {
     activeExerciseId = exerciseId;
-    const ex = dayData[currentDay].exercises.find(e => e.id === exerciseId);
+    const ex = findExercise(exerciseId);
     const hist = getHistory(exerciseId);
+    const cargaField = document.getElementById('modalCargaField');
     document.getElementById('modalTitle').textContent = ex.name;
-    document.getElementById('modalCargaLabel').textContent = ex.loadLabel || 'Carga';
+
+    if (ex.hasLoad) {
+        cargaField.style.display = '';
+        document.getElementById('modalCargaLabel').textContent = ex.loadLabel || 'Carga';
+    } else {
+        cargaField.style.display = 'none';
+    }
+
     document.getElementById('modalSubtitle').textContent = hist.length > 0
-        ? `Última vez: ${hist[0].carga} · ${hist[0].reps} reps — ${hist[0].fecha}`
+        ? `Última vez: ${formatRecord(ex, hist[0])} — ${hist[0].fecha}`
         : 'Sin registros previos';
     let histHTML = '';
     if (hist.length > 1) {
         histHTML = `<div class="historico-titulo">Histórico</div><div class="historico-lista">`;
         hist.slice(1).forEach(r => {
-            histHTML += `<div class="historico-item"><span>${r.fecha} ${r.hora}</span><span class="h-valor">${r.carga} · ${r.reps} reps</span></div>`;
+            histHTML += `<div class="historico-item"><span>${r.fecha} ${r.hora}</span><span class="h-valor">${formatRecord(ex, r)}</span></div>`;
         });
         histHTML += `</div>`;
     }
@@ -619,7 +631,7 @@ function abrirModal(exerciseId) {
     document.getElementById('modalCarga').value = hist.length > 0 && hist[0].carga !== '—' ? hist[0].carga : '';
     document.getElementById('modalReps').value = hist.length > 0 && hist[0].reps !== '—' ? hist[0].reps : '';
     document.getElementById('modalOverlay').classList.add('open');
-    setTimeout(() => document.getElementById('modalCarga').focus(), 100);
+    setTimeout(() => document.getElementById(ex.hasLoad ? 'modalCarga' : 'modalReps').focus(), 100);
 }
 
 function cerrarModal() {
@@ -628,9 +640,10 @@ function cerrarModal() {
 }
 
 function guardarDesdeModal() {
-    const carga = document.getElementById('modalCarga').value;
+    const ex = findExercise(activeExerciseId);
+    const carga = ex.hasLoad ? document.getElementById('modalCarga').value : '—';
     const reps = document.getElementById('modalReps').value;
-    if (!carga && !reps) { cerrarModal(); return; }
+    if ((!carga || carga === '—') && !reps) { cerrarModal(); return; }
     const id = activeExerciseId;
     const record = addRecord(id, carga || '—', reps || '—');
     enviarASheets(id, carga || '—', reps || '—', record);
@@ -643,10 +656,11 @@ function guardarDesdeModal() {
 function renderRegistroResumen(exerciseId) {
     const el = document.getElementById(`registro_${exerciseId}`);
     if (!el) return;
+    const ex = findExercise(exerciseId);
     const hist = getHistory(exerciseId);
     const last = hist[0];
     el.innerHTML = last
-        ? `<span class="registro-label">Última vez</span><span class="registro-valor">${last.carga} · ${last.reps} reps</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${exerciseId}')">Editar</button><button class="btn-del" onclick="borrarRegistro('${exerciseId}')">✕</button></div>`
+        ? `<span class="registro-label">Última vez</span><span class="registro-valor">${formatRecord(ex, last)}</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${exerciseId}')">Editar</button><button class="btn-del" onclick="borrarRegistro('${exerciseId}')">✕</button></div>`
         : `<span class="registro-label" style="color:#444">Sin registros</span><button class="btn-reg" onclick="abrirModal('${exerciseId}')">+ Registrar</button>`;
 }
 
@@ -659,13 +673,13 @@ function borrarRegistro(exerciseId) {
 function renderCardMeta(exerciseId) {
     const el = document.getElementById(`meta_${exerciseId}`);
     if (!el) return;
-    const ex = dayData[currentDay].exercises.find(e => e.id === exerciseId);
+    const ex = findExercise(exerciseId);
     if (!ex) return;
     const hist = getHistory(exerciseId);
     const last = hist[0];
     const planStr = ex.sets !== '-' ? `${ex.sets} × ${ex.reps}` : ex.reps;
-    el.innerHTML = ex.hasLoad && last
-        ? `${planStr} <span class="last-load">· ${last.carga} kg / ${last.reps} reps</span>`
+    el.innerHTML = (ex.hasLoad || ex.trackReps) && last
+        ? `${planStr} <span class="last-load">· ${formatRecord(ex, last)}</span>`
         : planStr;
 }
 
@@ -682,12 +696,10 @@ function toggleExpand(exerciseId) {
     }
 }
 
-function toggleInstr(exerciseId) {
+function toggleInstrucciones(exerciseId) {
     const body = document.getElementById(`instr_${exerciseId}`);
-    const toggle = document.getElementById(`instr_toggle_${exerciseId}`);
     if (!body) return;
-    const open = body.classList.toggle('open');
-    if (toggle) toggle.textContent = open ? 'Ocultar ▴' : 'Ver ▾';
+    body.classList.toggle('open');
 }
 
 // ── COMPLETAR ──────────────────────────────────────────────────────────────────
@@ -719,11 +731,12 @@ function renderList(day) {
 
     data.exercises.forEach(ex => {
         num++;
-        const hist = ex.hasLoad ? getHistory(ex.id) : [];
+        const hasRegistro = ex.hasLoad || ex.trackReps;
+        const hist = hasRegistro ? getHistory(ex.id) : [];
         const last = hist[0];
         const planStr = ex.sets !== '-' ? `${ex.sets} × ${ex.reps}` : ex.reps;
-        const metaStr = ex.hasLoad && last
-            ? `${planStr} <span class="last-load">· ${last.carga} kg / ${last.reps} reps</span>`
+        const metaStr = hasRegistro && last
+            ? `${planStr} <span class="last-load">· ${formatRecord(ex, last)}</span>`
             : planStr;
         const isCompleted = completedExercises.has(ex.id);
         const isExpanded = expandedExercises.has(ex.id);
@@ -734,23 +747,13 @@ function renderList(day) {
         }
 
         // Registro HTML
-        const registroHTML = ex.hasLoad ? `
+        const registroHTML = hasRegistro ? `
             <div class="registro-row" id="registro_${ex.id}">
                 ${last
-                    ? `<span class="registro-label">Última vez</span><span class="registro-valor">${last.carga} · ${last.reps} reps</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${ex.id}')">Editar</button><button class="btn-del" onclick="borrarRegistro('${ex.id}')">✕</button></div>`
+                    ? `<span class="registro-label">Última vez</span><span class="registro-valor">${formatRecord(ex, last)}</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${ex.id}')">Editar</button><button class="btn-del" onclick="borrarRegistro('${ex.id}')">✕</button></div>`
                     : `<span class="registro-label" style="color:#444">Sin registros</span><button class="btn-reg" onclick="abrirModal('${ex.id}')">+ Registrar</button>`
                 }
             </div>` : '';
-
-        // Instrucciones HTML
-        const instrHTML = `
-            <div class="instr-header" onclick="toggleInstr('${ex.id}')">
-                <h3>Instrucciones</h3>
-                <span class="instr-toggle" id="instr_toggle_${ex.id}">Ver ▾</span>
-            </div>
-            <div class="instr-body" id="instr_${ex.id}">
-                <ul>${ex.instructions.map(i => `<li>${i}</li>`).join('')}</ul>
-            </div>`;
 
         // Specs
         const specsHTML = `<div class="ex-specs">
@@ -775,9 +778,12 @@ function renderList(day) {
             </div>
             <div class="ex-body">
                 ${specsHTML}
-                ${instrHTML}
+                <div class="action-row">
+                    <button class="btn-action" onclick="toggleInstrucciones('${ex.id}')">📋 Instrucciones</button>
+                    <button class="btn-action" onclick="openLightbox('', '${ex.name}', '${ex.emoji}')">👁 Imagen</button>
+                </div>
+                <ul class="instr-inline" id="instr_${ex.id}">${ex.instructions.map(i => `<li>${i}</li>`).join('')}</ul>
                 ${registroHTML}
-                <button class="btn-eye" onclick="openLightbox('', '${ex.name}', '${ex.emoji}')">👁 Ver ejercicio</button>
             </div>
         </div>`;
     });
@@ -801,29 +807,35 @@ const exerciseImageMap = {
     'Movilidad hombros':                    'Arm_Circles/0.jpg',
     'Movilidad cadera':                     'Ankle_On_The_Knee/0.jpg',
     'Movilidad tobillo y cadera':           'Ankle_Circles/0.jpg',
-    'Extensión de piernas':                 'Leg_Extensions/0.jpg',
     'Caminata lateral con banda':           'Band_Hip_Adductions/0.jpg',
-    'Peso muerto rumano':                   'Barbell_Deadlift/0.jpg',
-    'Peso muerto rumano unilateral':        'Stiff-Leg_Barbell_Good_Morning/0.jpg',
-    'Press de pecho':                       'Barbell_Bench_Press_-_Medium_Grip/0.jpg',
-    'Press militar sentado':                'Arnold_Dumbbell_Press/0.jpg',
-    'Elevaciones laterales':                'Alternating_Deltoid_Raise/0.jpg',
     'Fondos en banco':                      'Bench_Dips/0.jpg',
-    'Plancha frontal':                      'Front_Plank_with_Diagonal_Arm_Lift/0.jpg',
-    'Plancha lateral':                      'Side_Bridge/0.jpg',
     'Estiramiento cuádriceps':              'All_Fours_Quad_Stretch/0.jpg',
     'Estiramiento isquiotibiales':          '90_90_Hamstring/0.jpg',
-    'Puente de glúteos con carga':          'Barbell_Glute_Bridge/0.jpg',
-    'Jalón al pecho':                       'Band_Assisted_Pull-Up/0.jpg',
-    'Remo en máquina / polea baja':         'Alternating_Kettlebell_Row/0.jpg',
-    'Curl de bíceps con mancuernas':        'Alternate_Incline_Dumbbell_Curl/0.jpg',
     'Estiramiento glúteo (figura 4)':       'Ankle_On_The_Knee/0.jpg',
-    'Prensa unilateral (rango parcial)':    'Barbell_Full_Squat/0.jpg',
-    'Press inclinado con mancuernas':       'Around_The_Worlds/0.jpg',
-    'Jalón agarre neutro o dominadas asistidas': 'Band_Assisted_Pull-Up/0.jpg',
     'Remo unilateral con mancuerna':        'Alternating_Kettlebell_Row/0.jpg',
-    'Crunch en polea':                      'Ab_Crunch_Machine/0.jpg',
-    'Elevación de piernas colgado':         'Ab_Roller/0.jpg',
+};
+
+// Imágenes propias (Simply Fitness, fondo blanco) — prioridad sobre las remotas
+const LOCAL_IMG_BASE = 'img/';
+const localImageMap = {
+    'Press de pecho':                            'img_press_pecho.png',
+    'Press inclinado con mancuernas':            'img_press_inclinado.png',
+    'Press militar sentado':                     'img_press_militar.png',
+    'Elevaciones laterales':                     'img_elevaciones_laterales.png',
+    'Extensión de piernas':                      'img_extension_piernas.png',
+    'Peso muerto rumano':                        'img_peso_muerto.png',
+    'Peso muerto rumano unilateral':             'img_peso_muerto.png',
+    'Puente de glúteos con carga':               'img_puente_gluteo.png',
+    'Plancha frontal':                           'img_plancha_frontal.png',
+    'Plancha lateral':                           'img_plancha_lateral.png',
+    'Prensa unilateral (rango parcial)':         'img_prensa_unilateral.png',
+    'Elevación de talones unilateral':           'img_elevacion_talones.png',
+    'Jalón al pecho':                            'img_jalon_pecho.png',
+    'Jalón agarre neutro o dominadas asistidas': 'img_dominadas_asistidas.png',
+    'Remo en máquina / polea baja':              'img_remo_maquina.png',
+    'Curl de bíceps con mancuernas':             'img_curl_biceps.png',
+    'Crunch en polea':                           'img_crunch_polea.png',
+    'Elevación de piernas colgado':              'img_elevacion_piernas.png',
 };
 
 const gifCache = {};
@@ -842,6 +854,15 @@ async function openLightbox(imgSrc, name, emoji) {
     if (gifCache[name]) {
         img.style.display = 'block';
         img.src = gifCache[name];
+        return;
+    }
+
+    const localPath = localImageMap[name];
+    if (localPath) {
+        const url = `${LOCAL_IMG_BASE}${localPath}`;
+        gifCache[name] = url;
+        img.style.display = 'block';
+        img.src = url;
         return;
     }
 
