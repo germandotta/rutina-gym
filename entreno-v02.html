@@ -560,6 +560,8 @@ const dayData = {
             { id: "fb_remo", section: "Bloque 2 — Superior", name: "Remo en máquina / polea baja", emoji: "🚣", sets: "3", reps: "12", rest: "90 seg", hasLoad: true, loadLabel: "Peso (kg)", instructions: ["Sentado frente a la polea baja con agarre neutro","Espalda erguida, pecho fuera","Tirar hacia el abdomen llevando codos hacia atrás","Apretar escápulas en la posición final — 1 segundo","Extender brazos de forma controlada"] },
             { id: "fb_press_militar", section: "Bloque 2 — Superior", name: "Press militar sentado", emoji: "🏋️", sets: "3", reps: "10", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Sentado con espalda apoyada","Mancuernas a altura de hombros","Empujar hacia arriba sin arquear espalda","Bajar controlado hasta hombros","Core activado durante todo el movimiento"] },
             { id: "fb_curl", section: "Bloque 2 — Superior", name: "Curl de bíceps con mancuernas", emoji: "💪", sets: "3", reps: "12", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["De pie, mancuernas a los costados con agarre supino","Flexionar codos llevando las mancuernas hacia los hombros","Codos pegados al torso","Bajar controlado","Alternar o hacer ambos juntos"] },
+            { id: "fb_plancha", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
+            { id: "fb_crunch", section: "Bloque 3 — Core", name: "Crunch en polea", emoji: "🔗", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Peso polea (kg)", instructions: ["Polea alta con cuerda, de rodillas frente a la máquina","Agarrar la cuerda detrás de la nuca o a los lados de la cabeza","Flexionar el tronco llevando los codos hacia las rodillas","No tirar con los brazos — el movimiento viene del abdomen","Volver controlado sin hiperextender la espalda"] },
             { id: "fb_estir", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado"] },
             { id: "fb_bici_cooldown", section: "Vuelta a la calma", name: "Bici estática (enfriamiento)", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Resistencia baja, ritmo suave","Bajar progresivamente la frecuencia cardíaca","Foco en respiración profunda"] }
         ]
@@ -903,6 +905,7 @@ Object.values(dayData).forEach(day => {
 });
 
 async function cargarDesdeSheets() {
+    const dayAtStart = currentDay;
     try {
         const res = await fetch(SHEETS_URL);
         const json = await res.json();
@@ -940,9 +943,9 @@ async function cargarDesdeSheets() {
 }
 
 async function init() {
-    renderList('lunes'); // render inmediato con localStorage
-    await cargarDesdeSheets(); // actualiza en segundo plano
-    renderList('lunes'); // re-render con datos del Sheet
+    renderList('lunes');
+    await cargarDesdeSheets();
+    if (currentDay === 'lunes') renderList('lunes');
 }
 
 init();
