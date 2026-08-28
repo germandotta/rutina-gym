@@ -161,22 +161,33 @@
             font-size: 11px;
             color: #444;
             flex-shrink: 0;
-            transition: transform 0.2s;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .ex-card.expanded .ex-chevron { transform: rotate(180deg); }
 
         /* EXPANDIDO */
         .ex-body {
-            display: none;
-            padding: 0 14px 14px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 10px;
+            padding: 0 14px;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            border-top: 1px solid transparent;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.22s ease,
+                        padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-color 0.3s ease;
         }
 
-        .ex-card.expanded .ex-body { display: flex; }
+        .ex-card.expanded .ex-body {
+            max-height: 900px;
+            opacity: 1;
+            padding: 0 14px 14px;
+            border-top-color: rgba(255,255,255,0.06);
+        }
 
         /* SPECS */
         .ex-specs {
@@ -571,7 +582,7 @@ const dayData = {
 // ── ESTADO ─────────────────────────────────────────────────────────────────────
 let currentDay = 'lunes';
 let completedExercises = new Set();
-let expandedExercises = new Set();
+let expandedExerciseId = null;
 let activeExerciseId = null;
 
 // ── STORAGE ────────────────────────────────────────────────────────────────────
@@ -705,11 +716,15 @@ function renderCardMeta(exerciseId) {
 function toggleExpand(exerciseId) {
     const card = document.getElementById(`card_${exerciseId}`);
     if (!card) return;
-    if (expandedExercises.has(exerciseId)) {
-        expandedExercises.delete(exerciseId);
+    if (expandedExerciseId === exerciseId) {
+        expandedExerciseId = null;
         card.classList.remove('expanded');
     } else {
-        expandedExercises.add(exerciseId);
+        if (expandedExerciseId) {
+            const prevCard = document.getElementById(`card_${expandedExerciseId}`);
+            if (prevCard) prevCard.classList.remove('expanded');
+        }
+        expandedExerciseId = exerciseId;
         card.classList.add('expanded');
     }
 }
@@ -757,7 +772,7 @@ function renderList(day) {
             ? `${planStr} <span class="last-load">· ${formatRecord(ex, last)}</span>`
             : planStr;
         const isCompleted = completedExercises.has(ex.id);
-        const isExpanded = expandedExercises.has(ex.id);
+        const isExpanded = expandedExerciseId === ex.id;
 
         if (ex.section !== currentSection) {
             currentSection = ex.section;
@@ -813,7 +828,7 @@ function renderList(day) {
 function switchDay(day, el) {
     currentDay = day;
     completedExercises.clear();
-    expandedExercises.clear();
+    expandedExerciseId = null;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     renderList(day);
@@ -898,10 +913,14 @@ function closeLightbox() { document.getElementById('lightbox').classList.remove(
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
 
-// Construir mapa nombre -> id para todos los ejercicios
+// Construir mapa día -> nombre -> id. Va por día porque varios ejercicios
+// repiten el mismo nombre en distintos días con id distinto (ej. "Puente de
+// glúteos con carga" en miércoles y en full body); mapear solo por nombre
+// pisaba un id con otro y mezclaba el historial entre días.
 const nameToId = {};
-Object.values(dayData).forEach(day => {
-    day.exercises.forEach(ex => { nameToId[ex.name] = ex.id; });
+Object.entries(dayData).forEach(([day, data]) => {
+    nameToId[day] = {};
+    data.exercises.forEach(ex => { nameToId[day][ex.name] = ex.id; });
 });
 
 async function cargarDesdeSheets() {
@@ -914,6 +933,7 @@ async function cargarDesdeSheets() {
         // Agrupar por ejercicio, ordenar por fecha/hora desc, guardar en localStorage
         const histMap = {};
         json.data.forEach(row => {
+            const dia = row['Día'];
             const nombre = row['Ejercicio'];
             const carga = row['Carga'];
             const reps = row['Reps'];
@@ -921,7 +941,7 @@ async function cargarDesdeSheets() {
             if (!nombre || completado === 'sí') return;
             if (!carga && !reps) return;
             if (String(carga) === '—' && String(reps) === '—') return;
-            const id = nameToId[nombre];
+            const id = nameToId[dia] && nameToId[dia][nombre];
             if (!id) return;
             if (!histMap[id]) histMap[id] = [];
             histMap[id].push({
