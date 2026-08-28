@@ -37,36 +37,30 @@ Una Progressive Web App (PWA) para tu rutina de rehabilitación de rodillas. Se 
    ```
 4. En el iPhone (conectado a la misma red WiFi):
    - Averiguar la IP de tu Mac: System Settings > Network > WiFi > Details
-   - Abrir Safari y navegar a `http://[IP-DE-TU-MAC]:8000/rutina-gym-lunes.html`
-   - Ejemplo: `http://192.168.1.100:8000/rutina-gym-lunes.html`
+   - Abrir Safari y navegar a `http://[IP-DE-TU-MAC]:8000/entreno-v02.html`
+   - Ejemplo: `http://192.168.1.100:8000/entreno-v02.html`
    - Tocar "Compartir" > "Añadir a pantalla de inicio"
 
 **Nota:** Con esta opción, la app solo funciona cuando estés en la misma red WiFi que tu Mac y el servidor esté corriendo.
 
 ## Archivos incluidos
 
-- `rutina-gym-lunes.html` - App principal
-- `manifest.json` - Configuración PWA
-- `service-worker.js` - Cache para funcionar offline
-- `icon-192.png` y `icon-512.png` - Íconos de la app
-- `img_*.png` - 16 imágenes de ejercicios
+- `entreno-v02.html` - App principal (versión activa). Todos los días de rutina
+  (Lunes, Miércoles, Viernes, Full Body) viven en este único archivo, con tabs
+  para cambiar entre ellos.
+- `entreno-v01.html` - Versión anterior, se conserva como legado.
+- `config/manifest.json` - Configuración PWA
+- `config/service-worker.js` - Cache para funcionar offline
+- `config/icon-192.png` y `config/icon-512.png` - Íconos de la app
+- `img/img_*.png` - Imágenes de ejercicios
 
 ## Funcionalidades
 
-- ✅ 3 días de rutina (Lunes, Miércoles, Viernes)
-- ✅ Timer de descanso entre series
+- ✅ 4 días de rutina (Lunes, Miércoles, Viernes, Full Body)
 - ✅ Marcar ejercicios como completados
-- ✅ Barra de progreso
-- ✅ Dark mode
+- ✅ Registro de carga/reps con historial, sincronizado a Google Sheets
 - ✅ Fotos reales de cada ejercicio
 - ✅ Funciona offline (una vez instalada)
-- ✅ Sin scroll, optimizada para iPhone SE
-
-## Próximos pasos
-
-1. Generar rutinas de Miércoles y Viernes
-2. Mejorar íconos (actualmente son placeholders verdes)
-3. Agregar notificaciones para recordar entrenar
 
 ## Notas técnicas
 
