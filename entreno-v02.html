@@ -76,36 +76,78 @@
         /* PROGRESO */
         .progress-section { margin-top: 10px; }
 
-        .progress-bar-track {
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: #10b981;
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-labels {
+        .progress-header {
             display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .plan-week {
+        .progress-title {
             font-size: 10px;
+            font-weight: 700;
             color: #444;
-            margin-top: 3px;
-            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex-shrink: 0;
         }
+
+        .progress-summary {
+            font-size: 11px;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .progress-summary .sep { color: #333; }
+        .progress-summary .frac { font-weight: 600; }
+        .progress-summary .frac-hoy { color: #10b981; }
+        .progress-summary .frac-semana { color: #38bdf8; }
+        .progress-summary .frac-plan { color: #c084fc; }
+
+        .progress-chevron {
+            font-size: 11px;
+            color: #444;
+            flex-shrink: 0;
+            margin-left: auto;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-section.expanded .progress-chevron { transform: rotate(180deg); }
+
+        .progress-body {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 4px;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.22s ease,
+                        margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-section.expanded .progress-body {
+            max-height: 120px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
+        .ring-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .ring-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 5; }
+        .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
+        .ring-fill-hoy { stroke: #10b981; }
+        .ring-fill-semana { stroke: #38bdf8; }
+        .ring-fill-plan { stroke: #c084fc; }
+        .ring-text { font-size: 13px; font-weight: 700; }
+        .ring-text-hoy { fill: #10b981; }
+        .ring-text-semana { fill: #38bdf8; }
+        .ring-text-plan { fill: #c084fc; }
+        .ring-label { font-size: 11px; color: #888; font-weight: 600; }
+        .ring-frac { font-size: 10px; font-weight: 600; }
 
         /* LISTA */
         .exercise-list {
@@ -508,13 +550,41 @@
             <div class="tab" data-day="viernes" onclick="switchDay('viernes', this)">Viernes</div>
             <div class="tab" data-day="fullbody" onclick="switchDay('fullbody', this)">Full Body</div>
         </div>
-        <div class="progress-section">
-            <div class="progress-bar-track"><div class="progress-bar-fill" id="dailyProgressFill"></div></div>
-            <div class="progress-labels">
-                <span id="dailyProgressLabel">Hoy: 0/0 (0%)</span>
-                <span id="weekProgressLabel">Semana: 0/3 días</span>
+        <div class="progress-section" id="progresoSection">
+            <div class="progress-header" onclick="toggleProgreso()">
+                <div class="progress-title">Progreso</div>
+                <div class="progress-summary" id="progresoResumen"></div>
+                <span class="progress-chevron">▼</span>
             </div>
-            <div class="plan-week" id="planWeekLabel"></div>
+            <div class="progress-body">
+                <div class="ring-item">
+                    <svg width="52" height="52" viewBox="0 0 56 56">
+                        <circle class="ring-track" cx="28" cy="28" r="24"/>
+                        <circle class="ring-fill ring-fill-hoy" id="ringHoy" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8" transform="rotate(-90 28 28)"/>
+                        <text class="ring-text ring-text-hoy" id="ringHoyText" x="28" y="32" text-anchor="middle">0%</text>
+                    </svg>
+                    <div class="ring-label">Hoy</div>
+                    <div class="ring-frac" id="fracHoy" style="color:#10b981">0/0</div>
+                </div>
+                <div class="ring-item">
+                    <svg width="52" height="52" viewBox="0 0 56 56">
+                        <circle class="ring-track" cx="28" cy="28" r="24"/>
+                        <circle class="ring-fill ring-fill-semana" id="ringSemana" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8" transform="rotate(-90 28 28)"/>
+                        <text class="ring-text ring-text-semana" id="ringSemanaText" x="28" y="32" text-anchor="middle">0%</text>
+                    </svg>
+                    <div class="ring-label">Semana</div>
+                    <div class="ring-frac" id="fracSemana" style="color:#38bdf8">0/3</div>
+                </div>
+                <div class="ring-item">
+                    <svg width="52" height="52" viewBox="0 0 56 56">
+                        <circle class="ring-track" cx="28" cy="28" r="24"/>
+                        <circle class="ring-fill ring-fill-plan" id="ringPlan" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8" transform="rotate(-90 28 28)"/>
+                        <text class="ring-text ring-text-plan" id="ringPlanText" x="28" y="32" text-anchor="middle">0%</text>
+                    </svg>
+                    <div class="ring-label">Plan</div>
+                    <div class="ring-frac" id="fracPlan" style="color:#c084fc">0/12</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -831,25 +901,62 @@ function guardarSettings() {
 }
 
 // ── RENDER PROGRESO ──────────────────────────────────────────────────────────────
+const RING_CIRC = 150.8; // 2 * PI * r(24)
+
+function setRing(idPrefix, done, total) {
+    const pct = total > 0 ? Math.min(1, done / total) : 0;
+    const circle = document.getElementById(`ring${idPrefix}`);
+    const text = document.getElementById(`ring${idPrefix}Text`);
+    const frac = document.getElementById(`frac${idPrefix}`);
+    if (circle) circle.style.strokeDashoffset = (RING_CIRC * (1 - pct)).toFixed(1);
+    if (text) text.textContent = `${Math.round(pct * 100)}%`;
+    if (frac) frac.textContent = `${done}/${total}`;
+}
+
 function renderProgress() {
     checkAndMarkWeekProgress();
 
     const total = dayData[currentDay].exercises.length;
     const done = completedExercises.size;
-    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-    const fill = document.getElementById('dailyProgressFill');
-    const label = document.getElementById('dailyProgressLabel');
-    if (fill) fill.style.width = pct + '%';
-    if (label) label.textContent = `Hoy: ${done}/${total} (${pct}%)`;
+    setRing('Hoy', done, total);
 
     const wp = getWeekProgress();
     const weekDone = ['lunes', 'miercoles', 'viernes'].filter(d => wp[d]).length;
-    const weekLabel = document.getElementById('weekProgressLabel');
-    if (weekLabel) weekLabel.textContent = `Semana: ${weekDone}/3 días`;
+    setRing('Semana', weekDone, 3);
 
     const { week, totalWeeks } = currentPlanWeek();
-    const planLabel = document.getElementById('planWeekLabel');
-    if (planLabel) planLabel.textContent = `Semana ${week} de ${totalWeeks}`;
+    setRing('Plan', week, totalWeeks);
+
+    const resumen = document.getElementById('progresoResumen');
+    if (resumen) {
+        resumen.innerHTML = `<span>Hoy</span> <span class="frac frac-hoy">${done}/${total}</span>` +
+            `<span class="sep"> · </span><span>Semana</span> <span class="frac frac-semana">${weekDone}/3</span>` +
+            `<span class="sep"> · </span><span>Plan</span> <span class="frac frac-plan">${week}/${totalWeeks}</span>`;
+    }
+}
+
+function progresoExpandedKey() { return 'entreno_progreso_expanded'; }
+
+function isProgresoExpanded() {
+    try {
+        const v = localStorage.getItem(progresoExpandedKey());
+        return v === null ? true : v === '1';
+    } catch(e) { return true; }
+}
+
+function setProgresoExpanded(val) {
+    try { localStorage.setItem(progresoExpandedKey(), val ? '1' : '0'); } catch(e) {}
+}
+
+function toggleProgreso() {
+    const section = document.getElementById('progresoSection');
+    if (!section) return;
+    setProgresoExpanded(section.classList.toggle('expanded'));
+}
+
+function initProgresoExpandido() {
+    const section = document.getElementById('progresoSection');
+    if (section) section.classList.toggle('expanded', isProgresoExpanded());
 }
 
 function setActiveTab(day) {
@@ -1299,6 +1406,7 @@ async function init() {
     loadCompletedForDay(currentDay);
     setActiveTab(currentDay);
     ensurePlanConfig();
+    initProgresoExpandido();
     renderList(currentDay);
     renderProgress();
     const dayAtStart = currentDay;
