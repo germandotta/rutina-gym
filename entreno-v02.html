@@ -705,34 +705,72 @@ function saveCompletedForDay(day) {
 }
 
 // ── PROGRESO SEMANAL (lunes/miércoles/viernes, se resetea cada semana) ──────────
-function weekKey() {
-    const d = new Date();
-    const dow = d.getDay();
+// "Día completado" = al menos un ejercicio marcado con el check ese día (no hace
+// falta tildar los 15/13/12, alcanza con haber ido).
+function weekKeyForDate(dateObj) {
+    const dow = dateObj.getDay();
     const diffToMonday = (dow === 0 ? -6 : 1) - dow;
-    const monday = new Date(d);
-    monday.setDate(d.getDate() + diffToMonday);
+    const monday = new Date(dateObj);
+    monday.setDate(dateObj.getDate() + diffToMonday);
     return `entreno_semana_${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
 }
 
-function getWeekProgress() {
+function weekKey() { return weekKeyForDate(new Date()); }
+
+function getWeekProgress(key) {
     try {
-        const raw = localStorage.getItem(weekKey());
+        const raw = localStorage.getItem(key || weekKey());
         if (raw) return JSON.parse(raw);
     } catch(e) {}
     return {};
 }
 
-function markDayCompletedInWeek(day) {
+function markDayCompletedInWeekForDate(day, dateObj) {
     if (!['lunes', 'miercoles', 'viernes'].includes(day)) return;
-    const wp = getWeekProgress();
+    const key = weekKeyForDate(dateObj);
+    const wp = getWeekProgress(key);
     if (wp[day]) return;
     wp[day] = true;
-    try { localStorage.setItem(weekKey(), JSON.stringify(wp)); } catch(e) {}
+    try { localStorage.setItem(key, JSON.stringify(wp)); } catch(e) {}
 }
 
+function markDayCompletedInWeek(day) { markDayCompletedInWeekForDate(day, new Date()); }
+
 function checkAndMarkWeekProgress() {
-    const total = dayData[currentDay].exercises.length;
-    if (total > 0 && completedExercises.size >= total) markDayCompletedInWeek(currentDay);
+    if (completedExercises.size >= 1) markDayCompletedInWeek(currentDay);
+}
+
+// Reconstruye el progreso semanal (y los checks del día de hoy) a partir del
+// historial real del Sheet — así el contador no depende de haber usado la app
+// con esta lógica desde el día 1.
+function backfillProgresoDesdeSheet(rows) {
+    const porDiaFecha = {}; // `${dia}|${fechaISO}` -> true (hubo al menos 1 completado)
+    rows.forEach(row => {
+        if (row['Completado'] !== 'sí') return;
+        const dia = row['Día'];
+        if (!dia || !dayData[dia]) return;
+        const fechaISO = row['Fecha'] ? String(row['Fecha']).slice(0, 10) : null;
+        if (!fechaISO) return;
+        porDiaFecha[`${dia}|${fechaISO}`] = true;
+    });
+
+    Object.keys(porDiaFecha).forEach(key => {
+        const [dia, fechaISO] = key.split('|');
+        const dateObj = new Date(fechaISO + 'T00:00:00');
+        markDayCompletedInWeekForDate(dia, dateObj);
+        if (dia === currentDay && fechaISO === todayStr()) {
+            const idsDeHoy = dayData[dia].exercises.map(e => e.id);
+            const marcadosHoy = new Set();
+            rows.forEach(r => {
+                if (r['Completado'] === 'sí' && r['Día'] === dia && String(r['Fecha']).slice(0, 10) === fechaISO) {
+                    const id = nameToId[dia] && nameToId[dia][r['Ejercicio']];
+                    if (id) marcadosHoy.add(id);
+                }
+            });
+            completedExercises = new Set([...completedExercises, ...marcadosHoy]);
+            saveCompletedForDay(dia);
+        }
+    });
 }
 
 // ── CONFIGURACIÓN DEL PLAN (semana X de Y) ──────────────────────────────────────
@@ -1249,6 +1287,8 @@ async function cargarDesdeSheets() {
             const sorted = records.reverse().slice(0, 10);
             try { localStorage.setItem(historyKey(id), JSON.stringify(sorted)); } catch(e) {}
         });
+
+        backfillProgresoDesdeSheet(json.data);
     } catch(e) {
         // Si falla, usa localStorage existente
     }
