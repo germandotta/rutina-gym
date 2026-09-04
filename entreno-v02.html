@@ -40,6 +40,17 @@
 
         .header h1 { font-size: 22px; font-weight: 700; color: white; }
 
+        .btn-settings {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            color: rgba(255,255,255,0.5);
+            padding: 4px;
+        }
+
         .tabs { display: flex; gap: 8px; }
 
         .tab {
@@ -60,6 +71,40 @@
             background: rgba(16,185,129,0.2);
             border-color: #10b981;
             color: #10b981;
+        }
+
+        /* PROGRESO */
+        .progress-section { margin-top: 10px; }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #10b981;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .plan-week {
+            font-size: 10px;
+            color: #444;
+            margin-top: 3px;
+            text-align: right;
         }
 
         /* LISTA */
@@ -455,12 +500,21 @@
                 <path d="M315.738 83.9437V33.6291H275.711V0H213.012V81.7531H121.031V0H58.3179V33.6291H18.2913V83.9437C18.2913 94.0269 10.0958 102.187 0 102.187V124.813C10.1099 124.813 18.2913 132.987 18.2913 143.056V193.371H58.3179V227H121.017V145.247H212.983V227H275.682V193.371H315.709V143.056C315.709 132.973 323.904 124.813 334 124.813V102.187C323.89 102.187 315.709 94.0128 315.709 83.9437H315.738ZM58.3143 170.758H40.9733V56.2377H58.3143V170.758ZM98.3264 81.7498V204.372H80.9996V22.6235H98.3264V81.7498ZM203.832 122.619H130.171C125.124 122.619 121.012 118.532 121.012 113.484C121.012 108.435 125.109 104.348 130.171 104.348H203.832C208.88 104.348 212.992 108.435 212.992 113.484C212.992 118.532 208.894 122.619 203.832 122.619ZM253.006 33.611V204.358H235.679V22.6235H253.006V33.6258V33.611ZM293.033 170.743H275.692L275.706 56.2377H293.047V170.743H293.033Z" fill="#10B981"/>
             </svg>
             <h1>Entreno</h1>
+            <button class="btn-settings" onclick="abrirSettings()" aria-label="Configuración">⚙️</button>
         </div>
         <div class="tabs">
-            <div class="tab active" onclick="switchDay('lunes', this)">Lunes</div>
-            <div class="tab" onclick="switchDay('miercoles', this)">Miércoles</div>
-            <div class="tab" onclick="switchDay('viernes', this)">Viernes</div>
-            <div class="tab" onclick="switchDay('fullbody', this)">Full Body</div>
+            <div class="tab" data-day="lunes" onclick="switchDay('lunes', this)">Lunes</div>
+            <div class="tab" data-day="miercoles" onclick="switchDay('miercoles', this)">Miércoles</div>
+            <div class="tab" data-day="viernes" onclick="switchDay('viernes', this)">Viernes</div>
+            <div class="tab" data-day="fullbody" onclick="switchDay('fullbody', this)">Full Body</div>
+        </div>
+        <div class="progress-section">
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="dailyProgressFill"></div></div>
+            <div class="progress-labels">
+                <span id="dailyProgressLabel">Hoy: 0/0 (0%)</span>
+                <span id="weekProgressLabel">Semana: 0/3 días</span>
+            </div>
+            <div class="plan-week" id="planWeekLabel"></div>
         </div>
     </div>
 
@@ -488,8 +542,12 @@
                 <label id="modalCargaLabel">Carga</label>
                 <input type="text" id="modalCarga" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*">
             </div>
+            <div class="modal-field" id="modalVelocidadField" style="display:none">
+                <label id="modalVelocidadLabel">Velocidad</label>
+                <input type="text" id="modalVelocidad" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*">
+            </div>
             <div class="modal-field">
-                <label>Reps</label>
+                <label id="modalRepsLabel">Reps</label>
                 <input type="number" id="modalReps" placeholder="—" inputmode="numeric">
             </div>
         </div>
@@ -497,6 +555,30 @@
         <div class="modal-actions">
             <button class="btn-modal-guardar" onclick="guardarDesdeModal()">Guardar</button>
             <button class="btn-modal-cancelar" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- SETTINGS: PLAN DE ENTRENAMIENTO -->
+<div class="modal-overlay" id="settingsOverlay">
+    <div class="modal-sheet">
+        <div>
+            <div class="modal-title">Configuración del plan</div>
+            <div class="modal-subtitle">Fecha de inicio y duración total</div>
+        </div>
+        <div class="modal-inputs" style="flex-direction:column;gap:14px">
+            <div class="modal-field">
+                <label>Fecha de inicio</label>
+                <input type="date" id="settingsStartDate">
+            </div>
+            <div class="modal-field">
+                <label>Duración (semanas)</label>
+                <input type="number" id="settingsWeeks" inputmode="numeric" min="1">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-guardar" onclick="guardarSettings()">Guardar</button>
+            <button class="btn-modal-cancelar" onclick="cerrarSettings()">Cancelar</button>
         </div>
     </div>
 </div>
@@ -521,7 +603,7 @@ const dayData = {
             { id: "plancha_frontal", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
             { id: "plancha_lateral", section: "Bloque 3 — Core", name: "Plancha lateral", emoji: "⬅️", sets: "2", reps: "30 seg c/lado", rest: "30 seg", hasLoad: false, instructions: ["Apoyar antebrazo y borde externo del pie","Cuerpo recto en posición lateral","Cadera elevada — no dejar caer","Hacer un lado, descansar, cambiar","Core activado todo el tiempo"] },
             { id: "estir_general", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado","Tríceps: brazo arriba, codo flexionado detrás de la cabeza, empujar suave con la otra mano, 30 seg c/lado"] },
-            { id: "bici_cooldown", section: "Vuelta a la calma", name: "Bici estática (enfriamiento)", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Resistencia baja, ritmo suave","Bajar progresivamente la frecuencia cardíaca","Foco en respiración profunda","Cierre de la sesión"] }
+            { id: "caminata_cinta", section: "Vuelta a la calma", name: "Caminata en cinta", emoji: "🚶", sets: "-", reps: "10 min", rest: "-", hasLoad: false, trackCinta: true, noImage: true, instructions: ["Inclinación 6, velocidad 6 como referencia — ajustar según sensación","10 minutos de caminata continua","Bajar progresivamente la frecuencia cardíaca","Cierre de la sesión"] }
         ]
     },
     miercoles: {
@@ -539,7 +621,7 @@ const dayData = {
             { id: "plancha_frontal_mie", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
             { id: "pallof_press", section: "Bloque 3 — Core", name: "Pallof press con polea", emoji: "🔁", sets: "3", reps: "10 c/lado", rest: "45 seg", hasLoad: true, loadLabel: "Peso polea (kg)", instructions: ["Pararse de costado a la polea, a unos 60-70 cm","Agarrar la manija con ambas manos frente al pecho","Extender los brazos hacia adelante — sin rotar el torso","Mantener 1-2 segundos extendido, luego volver","La resistencia intenta rotarte — el core resiste","Hacer las reps, girar 180° y repetir del otro lado"] },
             { id: "estir_general_mie", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado","Tríceps: brazo arriba, codo flexionado detrás de la cabeza, empujar suave con la otra mano, 30 seg c/lado"] },
-            { id: "bici_cooldown_mie", section: "Vuelta a la calma", name: "Bici estática (enfriamiento)", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Resistencia baja, ritmo suave","Bajar progresivamente la frecuencia cardíaca","Foco en respiración profunda","Cierre de la sesión"] }
+            { id: "caminata_cinta_mie", section: "Vuelta a la calma", name: "Caminata en cinta", emoji: "🚶", sets: "-", reps: "10 min", rest: "-", hasLoad: false, trackCinta: true, noImage: true, instructions: ["Inclinación 6, velocidad 6 como referencia — ajustar según sensación","10 minutos de caminata continua","Bajar progresivamente la frecuencia cardíaca","Cierre de la sesión"] }
         ]
     },
     viernes: {
@@ -556,7 +638,7 @@ const dayData = {
             { id: "crunch_polea", section: "Bloque 3 — Core", name: "Crunch en polea", emoji: "🔗", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Peso polea (kg)", instructions: ["Polea alta con cuerda, de rodillas frente a la máquina","Agarrar la cuerda detrás de la nuca o a los lados de la cabeza","Flexionar el tronco llevando los codos hacia las rodillas","No tirar con los brazos — el movimiento viene del abdomen","Volver controlado sin hiperextender la espalda","Peso moderado — priorizar recorrido completo"] },
             { id: "elevacion_piernas", section: "Bloque 3 — Core", name: "Elevación de piernas colgado", emoji: "🏗️", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["Colgado de barra con agarre prono","Elevar rodillas hacia el pecho — o piernas extendidas si hay fuerza","Bajar controlado — sin balancear el cuerpo","Core activado en todo el recorrido","Si hay soporte de codos (captain's chair), usarlo"] },
             { id: "estir_general_vie", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado","Tríceps: brazo arriba, codo flexionado detrás de la cabeza, empujar suave con la otra mano, 30 seg c/lado"] },
-            { id: "bici_cooldown_vie", section: "Vuelta a la calma", name: "Bici estática (enfriamiento)", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Resistencia baja, ritmo suave","Bajar progresivamente la frecuencia cardíaca","Foco en respiración profunda","Cierre de la sesión"] }
+            { id: "caminata_cinta_vie", section: "Vuelta a la calma", name: "Caminata en cinta", emoji: "🚶", sets: "-", reps: "10 min", rest: "-", hasLoad: false, trackCinta: true, noImage: true, instructions: ["Inclinación 6, velocidad 6 como referencia — ajustar según sensación","10 minutos de caminata continua","Bajar progresivamente la frecuencia cardíaca","Cierre de la sesión"] }
         ]
     },
     fullbody: {
@@ -574,7 +656,7 @@ const dayData = {
             { id: "fb_plancha", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
             { id: "fb_crunch", section: "Bloque 3 — Core", name: "Crunch en polea", emoji: "🔗", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Peso polea (kg)", instructions: ["Polea alta con cuerda, de rodillas frente a la máquina","Agarrar la cuerda detrás de la nuca o a los lados de la cabeza","Flexionar el tronco llevando los codos hacia las rodillas","No tirar con los brazos — el movimiento viene del abdomen","Volver controlado sin hiperextender la espalda"] },
             { id: "fb_estir", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado"] },
-            { id: "fb_bici_cooldown", section: "Vuelta a la calma", name: "Bici estática (enfriamiento)", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Resistencia baja, ritmo suave","Bajar progresivamente la frecuencia cardíaca","Foco en respiración profunda"] }
+            { id: "fb_caminata_cinta", section: "Vuelta a la calma", name: "Caminata en cinta", emoji: "🚶", sets: "-", reps: "10 min", rest: "-", hasLoad: false, trackCinta: true, noImage: true, instructions: ["Inclinación 6, velocidad 6 como referencia — ajustar según sensación","10 minutos de caminata continua","Bajar progresivamente la frecuencia cardíaca","Cierre de la sesión"] }
         ]
     }
 };
@@ -585,6 +667,157 @@ let completedExercises = new Set();
 let expandedExerciseId = null;
 let activeExerciseId = null;
 
+// ── FECHA / DÍA AUTOMÁTICO ───────────────────────────────────────────────────────
+function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function getAutoDay() {
+    const dow = new Date().getDay(); // 0=domingo … 6=sábado
+    if (dow === 1) return 'lunes';
+    if (dow === 3) return 'miercoles';
+    if (dow === 5) return 'viernes';
+    return 'fullbody';
+}
+
+// ── COMPLETADOS DEL DÍA (persistidos, se resetean cada nueva fecha) ─────────────
+function completadoKey(day) { return `entreno_completado_${day}_${todayStr()}`; }
+
+function loadCompletedForDay(day) {
+    completedExercises = new Set();
+    const prefix = `entreno_completado_${day}_`;
+    const todayKey = completadoKey(day);
+    try {
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith(prefix) && k !== todayKey) localStorage.removeItem(k);
+        });
+        const raw = localStorage.getItem(todayKey);
+        if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) completedExercises = new Set(arr);
+        }
+    } catch(e) {}
+}
+
+function saveCompletedForDay(day) {
+    try { localStorage.setItem(completadoKey(day), JSON.stringify([...completedExercises])); } catch(e) {}
+}
+
+// ── PROGRESO SEMANAL (lunes/miércoles/viernes, se resetea cada semana) ──────────
+function weekKey() {
+    const d = new Date();
+    const dow = d.getDay();
+    const diffToMonday = (dow === 0 ? -6 : 1) - dow;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diffToMonday);
+    return `entreno_semana_${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+}
+
+function getWeekProgress() {
+    try {
+        const raw = localStorage.getItem(weekKey());
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return {};
+}
+
+function markDayCompletedInWeek(day) {
+    if (!['lunes', 'miercoles', 'viernes'].includes(day)) return;
+    const wp = getWeekProgress();
+    if (wp[day]) return;
+    wp[day] = true;
+    try { localStorage.setItem(weekKey(), JSON.stringify(wp)); } catch(e) {}
+}
+
+function checkAndMarkWeekProgress() {
+    const total = dayData[currentDay].exercises.length;
+    if (total > 0 && completedExercises.size >= total) markDayCompletedInWeek(currentDay);
+}
+
+// ── CONFIGURACIÓN DEL PLAN (semana X de Y) ──────────────────────────────────────
+function planConfigKey() { return 'entreno_plan_config'; }
+
+function getPlanConfig() {
+    try {
+        const raw = localStorage.getItem(planConfigKey());
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return null;
+}
+
+function ensurePlanConfig() {
+    let cfg = getPlanConfig();
+    if (!cfg || !cfg.startDate || !cfg.weeks) {
+        cfg = { startDate: todayStr(), weeks: 12 };
+        try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
+    }
+    return cfg;
+}
+
+function savePlanConfig(startDate, weeks) {
+    const cfg = { startDate, weeks };
+    try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
+    return cfg;
+}
+
+function currentPlanWeek() {
+    const cfg = ensurePlanConfig();
+    const start = new Date(cfg.startDate + 'T00:00:00');
+    const today = new Date(todayStr() + 'T00:00:00');
+    const diffDays = Math.floor((today - start) / 86400000);
+    let week = Math.floor(diffDays / 7) + 1;
+    if (week < 1) week = 1;
+    if (week > cfg.weeks) week = cfg.weeks;
+    return { week, totalWeeks: cfg.weeks };
+}
+
+function abrirSettings() {
+    const cfg = ensurePlanConfig();
+    document.getElementById('settingsStartDate').value = cfg.startDate;
+    document.getElementById('settingsWeeks').value = cfg.weeks;
+    document.getElementById('settingsOverlay').classList.add('open');
+}
+
+function cerrarSettings() {
+    document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+function guardarSettings() {
+    const startDate = document.getElementById('settingsStartDate').value;
+    const weeks = parseInt(document.getElementById('settingsWeeks').value, 10) || 12;
+    if (!startDate) { cerrarSettings(); return; }
+    savePlanConfig(startDate, weeks);
+    cerrarSettings();
+    renderProgress();
+}
+
+// ── RENDER PROGRESO ──────────────────────────────────────────────────────────────
+function renderProgress() {
+    checkAndMarkWeekProgress();
+
+    const total = dayData[currentDay].exercises.length;
+    const done = completedExercises.size;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const fill = document.getElementById('dailyProgressFill');
+    const label = document.getElementById('dailyProgressLabel');
+    if (fill) fill.style.width = pct + '%';
+    if (label) label.textContent = `Hoy: ${done}/${total} (${pct}%)`;
+
+    const wp = getWeekProgress();
+    const weekDone = ['lunes', 'miercoles', 'viernes'].filter(d => wp[d]).length;
+    const weekLabel = document.getElementById('weekProgressLabel');
+    if (weekLabel) weekLabel.textContent = `Semana: ${weekDone}/3 días`;
+
+    const { week, totalWeeks } = currentPlanWeek();
+    const planLabel = document.getElementById('planWeekLabel');
+    if (planLabel) planLabel.textContent = `Semana ${week} de ${totalWeeks}`;
+}
+
+function setActiveTab(day) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.day === day));
+}
+
 // ── STORAGE ────────────────────────────────────────────────────────────────────
 function historyKey(id) { return `entreno_hist_${id}`; }
 
@@ -592,13 +825,14 @@ function getHistory(id) {
     try { return JSON.parse(localStorage.getItem(historyKey(id))) || []; } catch(e) { return []; }
 }
 
-function addRecord(id, carga, reps) {
+function addRecord(id, carga, reps, velocidad) {
     const hist = getHistory(id);
     const record = {
         carga, reps,
         fecha: new Date().toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' }),
         hora: new Date().toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' })
     };
+    if (velocidad !== undefined) record.velocidad = velocidad;
     hist.unshift(record);
     if (hist.length > 10) hist.pop();
     try { localStorage.setItem(historyKey(id), JSON.stringify(hist)); } catch(e) {}
@@ -612,12 +846,18 @@ function deleteHistory(id) {
 // ── SHEETS ─────────────────────────────────────────────────────────────────────
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz0Ao_TIHg94zk4v1ewUMyGl1vBxAwzSw8yozIwIdmiNyVaYRBBX9KPgJuSpHgGjYvZ/exec';
 
-function enviarASheets(exerciseId, carga, reps, record) {
+function enviarASheets(exerciseId, carga, reps, record, velocidad) {
     const ex = dayData[currentDay].exercises.find(e => e.id === exerciseId);
+    let cargaToSend = carga;
+    let repsToSend = reps;
+    if (ex && ex.trackCinta) {
+        cargaToSend = `Incl. ${carga} · Vel. ${velocidad} · ${reps} min`;
+        repsToSend = '—';
+    }
     fetch(SHEETS_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fecha: record.fecha, hora: record.hora, dia: currentDay, ejercicio: ex ? ex.name : exerciseId, carga, reps, completado: '' })
+        body: JSON.stringify({ fecha: record.fecha, hora: record.hora, dia: currentDay, ejercicio: ex ? ex.name : exerciseId, carga: cargaToSend, reps: repsToSend, completado: '' })
     }).catch(() => {});
 }
 
@@ -627,6 +867,7 @@ function findExercise(exerciseId) {
 }
 
 function formatRecord(ex, r) {
+    if (ex.trackCinta) return `Incl. ${r.carga} · Vel. ${r.velocidad} · ${r.reps} min`;
     return ex.hasLoad ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
 }
 
@@ -636,13 +877,24 @@ function abrirModal(exerciseId) {
     const ex = findExercise(exerciseId);
     const hist = getHistory(exerciseId);
     const cargaField = document.getElementById('modalCargaField');
+    const velocidadField = document.getElementById('modalVelocidadField');
     document.getElementById('modalTitle').textContent = ex.name;
 
-    if (ex.hasLoad) {
+    if (ex.trackCinta) {
         cargaField.style.display = '';
+        velocidadField.style.display = '';
+        document.getElementById('modalCargaLabel').textContent = 'Inclinación';
+        document.getElementById('modalVelocidadLabel').textContent = 'Velocidad';
+        document.getElementById('modalRepsLabel').textContent = 'Minutos';
+    } else if (ex.hasLoad) {
+        cargaField.style.display = '';
+        velocidadField.style.display = 'none';
         document.getElementById('modalCargaLabel').textContent = ex.loadLabel || 'Carga';
+        document.getElementById('modalRepsLabel').textContent = 'Reps';
     } else {
         cargaField.style.display = 'none';
+        velocidadField.style.display = 'none';
+        document.getElementById('modalRepsLabel').textContent = 'Reps';
     }
 
     document.getElementById('modalSubtitle').textContent = hist.length > 0
@@ -657,10 +909,18 @@ function abrirModal(exerciseId) {
         histHTML += `</div>`;
     }
     document.getElementById('modalHistorico').innerHTML = histHTML;
-    document.getElementById('modalCarga').value = hist.length > 0 && hist[0].carga !== '—' ? hist[0].carga : '';
-    document.getElementById('modalReps').value = hist.length > 0 && hist[0].reps !== '—' ? hist[0].reps : '';
+
+    if (ex.trackCinta) {
+        document.getElementById('modalCarga').value = hist.length > 0 && hist[0].carga !== '—' ? hist[0].carga : '6';
+        document.getElementById('modalVelocidad').value = hist.length > 0 && hist[0].velocidad && hist[0].velocidad !== '—' ? hist[0].velocidad : '6';
+        document.getElementById('modalReps').value = hist.length > 0 && hist[0].reps !== '—' ? hist[0].reps : '10';
+    } else {
+        document.getElementById('modalCarga').value = hist.length > 0 && hist[0].carga !== '—' ? hist[0].carga : '';
+        document.getElementById('modalReps').value = hist.length > 0 && hist[0].reps !== '—' ? hist[0].reps : '';
+    }
+
     document.getElementById('modalOverlay').classList.add('open');
-    setTimeout(() => document.getElementById(ex.hasLoad ? 'modalCarga' : 'modalReps').focus(), 100);
+    setTimeout(() => document.getElementById(ex.hasLoad || ex.trackCinta ? 'modalCarga' : 'modalReps').focus(), 100);
 }
 
 function cerrarModal() {
@@ -670,10 +930,24 @@ function cerrarModal() {
 
 function guardarDesdeModal() {
     const ex = findExercise(activeExerciseId);
+    const id = activeExerciseId;
+
+    if (ex.trackCinta) {
+        const carga = document.getElementById('modalCarga').value;
+        const velocidad = document.getElementById('modalVelocidad').value;
+        const reps = document.getElementById('modalReps').value;
+        if (!carga && !velocidad && !reps) { cerrarModal(); return; }
+        const record = addRecord(id, carga || '—', reps || '—', velocidad || '—');
+        enviarASheets(id, carga || '—', reps || '—', record, velocidad || '—');
+        cerrarModal();
+        renderRegistroResumen(id);
+        renderCardMeta(id);
+        return;
+    }
+
     const carga = ex.hasLoad ? document.getElementById('modalCarga').value : '—';
     const reps = document.getElementById('modalReps').value;
     if ((!carga || carga === '—') && !reps) { cerrarModal(); return; }
-    const id = activeExerciseId;
     const record = addRecord(id, carga || '—', reps || '—');
     enviarASheets(id, carga || '—', reps || '—', record);
     cerrarModal();
@@ -707,7 +981,7 @@ function renderCardMeta(exerciseId) {
     const hist = getHistory(exerciseId);
     const last = hist[0];
     const planStr = ex.sets !== '-' ? `${ex.sets} × ${ex.reps}` : ex.reps;
-    el.innerHTML = (ex.hasLoad || ex.trackReps) && last
+    el.innerHTML = (ex.hasLoad || ex.trackReps || ex.trackCinta) && last
         ? `${planStr} <span class="last-load">· ${formatRecord(ex, last)}</span>`
         : planStr;
 }
@@ -744,6 +1018,8 @@ function marcarCompleto(exerciseId, exerciseName, event) {
     const check = document.getElementById(`check_${exerciseId}`);
     if (card) card.classList.add('completed');
     if (check) { check.classList.add('done'); check.textContent = '✓'; }
+    saveCompletedForDay(currentDay);
+    renderProgress();
     const now = new Date();
     const fecha = now.toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' });
     const hora = now.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
@@ -764,7 +1040,7 @@ function renderList(day) {
 
     data.exercises.forEach(ex => {
         num++;
-        const hasRegistro = ex.hasLoad || ex.trackReps;
+        const hasRegistro = ex.hasLoad || ex.trackReps || ex.trackCinta;
         const hist = hasRegistro ? getHistory(ex.id) : [];
         const last = hist[0];
         const planStr = ex.sets !== '-' ? `${ex.sets} × ${ex.reps}` : ex.reps;
@@ -825,13 +1101,13 @@ function renderList(day) {
 }
 
 // ── SWITCH DAY ─────────────────────────────────────────────────────────────────
-function switchDay(day, el) {
+function switchDay(day) {
     currentDay = day;
-    completedExercises.clear();
+    loadCompletedForDay(day);
     expandedExerciseId = null;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
+    setActiveTab(day);
     renderList(day);
+    renderProgress();
 }
 
 // ── LIGHTBOX ───────────────────────────────────────────────────────────────────
@@ -918,9 +1194,13 @@ function closeLightbox() { document.getElementById('lightbox').classList.remove(
 // glúteos con carga" en miércoles y en full body); mapear solo por nombre
 // pisaba un id con otro y mezclaba el historial entre días.
 const nameToId = {};
+const idToExercise = {};
 Object.entries(dayData).forEach(([day, data]) => {
     nameToId[day] = {};
-    data.exercises.forEach(ex => { nameToId[day][ex.name] = ex.id; });
+    data.exercises.forEach(ex => {
+        nameToId[day][ex.name] = ex.id;
+        idToExercise[ex.id] = ex;
+    });
 });
 
 async function cargarDesdeSheets() {
@@ -935,21 +1215,33 @@ async function cargarDesdeSheets() {
         json.data.forEach(row => {
             const dia = row['Día'];
             const nombre = row['Ejercicio'];
-            const carga = row['Carga'];
-            const reps = row['Reps'];
+            let carga = row['Carga'];
+            let reps = row['Reps'];
             const completado = row['Completado'];
             if (!nombre || completado === 'sí') return;
             if (!carga && !reps) return;
             if (String(carga) === '—' && String(reps) === '—') return;
             const id = nameToId[dia] && nameToId[dia][nombre];
             if (!id) return;
+
+            let velocidad;
+            const ex = idToExercise[id];
+            if (ex && ex.trackCinta) {
+                // La carga viaja al Sheet como string compuesto "Incl. X · Vel. Y · Z min"
+                // para no tener que agregar columnas nuevas. Acá se deshace ese empaquetado.
+                const m = String(carga).match(/Incl\.\s*([^\s·]+)\s*·\s*Vel\.\s*([^\s·]+)\s*·\s*([^\s]+)\s*min/i);
+                if (m) { carga = m[1]; velocidad = m[2]; reps = m[3]; }
+            }
+
             if (!histMap[id]) histMap[id] = [];
-            histMap[id].push({
+            const record = {
                 carga: String(carga || '—'),
                 reps: String(reps || '—'),
                 fecha: String(row['Fecha'] ? new Date(row['Fecha']).toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''),
                 hora: String(row['Hora'] || '')
-            });
+            };
+            if (velocidad !== undefined) record.velocidad = velocidad;
+            histMap[id].push(record);
         });
 
         // Guardar en localStorage (más reciente primero, máx 10)
@@ -963,9 +1255,18 @@ async function cargarDesdeSheets() {
 }
 
 async function init() {
-    renderList('lunes');
+    currentDay = getAutoDay();
+    loadCompletedForDay(currentDay);
+    setActiveTab(currentDay);
+    ensurePlanConfig();
+    renderList(currentDay);
+    renderProgress();
+    const dayAtStart = currentDay;
     await cargarDesdeSheets();
-    if (currentDay === 'lunes') renderList('lunes');
+    if (currentDay === dayAtStart) {
+        renderList(currentDay);
+        renderProgress();
+    }
 }
 
 init();
