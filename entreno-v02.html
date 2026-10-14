@@ -51,7 +51,7 @@
             padding: 4px;
         }
 
-        .tabs { display: flex; gap: 8px; }
+        .tabs { display: flex; gap: 6px; }
 
         .tab {
             flex: 1;
@@ -59,7 +59,7 @@
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: rgba(255,255,255,0.5);
             cursor: pointer;
@@ -296,6 +296,45 @@
         }
 
 
+
+        /* CONTADOR DE REPS */
+        .contador-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .contador-label { font-size: 11px; color: #555; flex: 1; }
+
+        .contador-valor {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e8e8e8;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .btn-contador {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #e8e8e8;
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-contador-mas {
+            background: rgba(16,185,129,0.18);
+            border-color: rgba(16,185,129,0.4);
+            color: #10b981;
+        }
 
         /* REGISTRO */
         .registro-row {
@@ -550,6 +589,7 @@
             <div class="tab" data-day="miercoles" onclick="switchDay('miercoles', this)">Miércoles</div>
             <div class="tab" data-day="viernes" onclick="switchDay('viernes', this)">Viernes</div>
             <div class="tab" data-day="fullbody" onclick="switchDay('fullbody', this)">Full Body</div>
+            <div class="tab" data-day="rodilla" onclick="switchDay('rodilla', this)">Rodilla</div>
         </div>
         <div class="progress-section" id="progresoSection">
             <div class="progress-header" onclick="toggleProgreso()">
@@ -635,7 +675,7 @@
     <div class="modal-sheet">
         <div>
             <div class="modal-title">Configuración del plan</div>
-            <div class="modal-subtitle">Fecha de inicio y duración total</div>
+            <div class="modal-subtitle" id="settingsSubtitle">Fecha de inicio y duración total</div>
         </div>
         <div class="modal-inputs" style="flex-direction:column;gap:14px">
             <div class="modal-field">
@@ -645,6 +685,10 @@
             <div class="modal-field">
                 <label>Duración (semanas)</label>
                 <input type="number" id="settingsWeeks" inputmode="numeric" min="1">
+            </div>
+            <div class="modal-field">
+                <label>Sesiones por semana (objetivo)</label>
+                <input type="number" id="settingsGoal" inputmode="numeric" min="1">
             </div>
         </div>
         <div class="modal-actions">
@@ -656,9 +700,9 @@
 
 <script>
 // ── DATOS ─────────────────────────────────────────────────────────────────────
-const protocoloRodilla = suffix => [
-    { id: `iso_sillon${suffix}`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: false, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
-    { id: `exc_sillon${suffix}`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: false, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
+const protocoloRodilla = prefix => [
+    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
+    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
 
 const dayData = {
@@ -668,7 +712,7 @@ const dayData = {
             { id: "bici", section: "Calentamiento", name: "Bici estática", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Ajustar asiento a altura de cadera","Resistencia baja-media","Ritmo cómodo, sin forzar rodillas","Objetivo: entrar en calor, no cansar"] },
             { id: "mov_hombros", section: "Calentamiento", name: "Movilidad hombros", emoji: "🔄", sets: "-", reps: "10 círculos c/u", rest: "-", hasLoad: false, noImage: true, instructions: ["De pie, brazos extendidos a los lados","10 círculos hacia adelante","10 círculos hacia atrás","Movimiento amplio y controlado"] },
             { id: "mov_cadera", section: "Calentamiento", name: "Movilidad cadera", emoji: "🦵", sets: "-", reps: "10 veces", rest: "-", hasLoad: false, noImage: true, instructions: ["Acostado boca arriba, rodillas flexionadas","Dejar caer rodillas juntas hacia un lado","Volver al centro, caer al otro lado","Mantener hombros en el suelo"] },
-            ...protocoloRodilla(''),
+            { id: "extension_piernas", section: "Bloque 1 — Piernas", name: "Extensión de piernas", emoji: "🦿", sets: "3", reps: "12-15", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Sentado en máquina, espalda apoyada","Ajustar rodillo sobre empeine","Extender piernas completamente","Bajar controlado, sin golpear peso","Dolor máximo permitido: 2-3/10"] },
             { id: "glute_kick", section: "Bloque 1 — Piernas", name: "Glute Kick en máquina", emoji: "🍑", sets: "3", reps: "12-15 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Apoyar pecho en el pad, manos en las agarraderas","Rodilla de trabajo apoyada en el soporte inferior","Empujar hacia atrás con el talón extendiendo la cadera","Llegar a línea recta cadera-pierna — no hiperextender la espalda","Volver controlado sin apoyar la rodilla entre reps","Hacer todas las reps de un lado, luego cambiar"] },
             { id: "caminata_banda", section: "Bloque 1 — Piernas", name: "Caminata lateral con banda", emoji: "🔀", sets: "3", reps: "15 pasos c/lado", rest: "60 seg", hasLoad: true, loadLabel: "Resistencia banda", instructions: ["Banda elástica por encima de las rodillas","Pies ancho de caderas, rodillas levemente flexionadas","Dar 15 pasos laterales hacia la derecha, luego 15 a la izquierda","Mantener tensión en la banda todo el tiempo","Core activado, tronco erguido sin balancear"] },
             { id: "peso_muerto", section: "Bloque 1 — Piernas", name: "Peso muerto rumano", emoji: "🏋️", sets: "3", reps: "12", rest: "90 seg", hasLoad: true, loadLabel: "Peso barra/mancuernas (kg)", instructions: ["Barra vacía o hasta 20 kg máximo","Pies ancho de caderas","Bisagra de cadera: empujar cola hacia atrás","Espalda recta DURANTE TODO el movimiento","Bajar barra hasta media canilla","Sentir estiramiento en isquiotibiales","NO redondear espalda bajo ningún concepto"] },
@@ -687,7 +731,6 @@ const dayData = {
         exercises: [
             { id: "bici_mie", section: "Calentamiento", name: "Bici estática", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Ajustar asiento a altura de cadera","Resistencia baja-media","Ritmo cómodo, sin forzar rodillas","Objetivo: entrar en calor, no cansar"] },
             { id: "mov_cadera_mie", section: "Calentamiento", name: "Movilidad cadera", emoji: "🦵", sets: "-", reps: "10 veces", rest: "-", hasLoad: false, noImage: true, instructions: ["Acostado boca arriba, rodillas flexionadas","Dejar caer rodillas juntas hacia un lado","Volver al centro, caer al otro lado","Mantener hombros en el suelo"] },
-            ...protocoloRodilla('_mie'),
             { id: "puente_gluteo", section: "Bloque 1 — Glúteos", name: "Puente de glúteos con carga", emoji: "🍑", sets: "3", reps: "15", rest: "60 seg", hasLoad: true, loadLabel: "Peso sobre cadera (kg)", instructions: ["Acostado boca arriba, rodillas flexionadas a ~90°, pies planos","Colocar mancuerna o barra sobre la cadera","Empujar talones contra el suelo y elevar cadera","Llegar a línea recta hombro-cadera-rodilla","Apretar glúteos en la parte alta — 1 segundo de pausa","Bajar controlado sin apoyar la cadera entre reps"] },
             { id: "peso_muerto_uni", section: "Bloque 1 — Glúteos", name: "Peso muerto rumano unilateral", emoji: "🏋️", sets: "3", reps: "10 c/pierna", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna (kg)", instructions: ["De pie, mancuerna en la mano contralateral a la pierna de apoyo","Bisagra de cadera: inclinar torso hacia adelante mientras la pierna libre sube atrás","Mantener espalda recta y cadera alineada — no rotar la pelvis","Bajar hasta sentir estiramiento en el isquiotibial de apoyo","Volver empujando con el talón","Flexión de rodilla leve — no bloquear"] },
             { id: "caminata_banda_mie", section: "Bloque 1 — Glúteos", name: "Caminata lateral con banda", emoji: "🔀", sets: "3", reps: "15 pasos c/lado", rest: "60 seg", hasLoad: true, loadLabel: "Resistencia banda", instructions: ["Banda elástica por encima de las rodillas","Pies ancho de caderas, rodillas levemente flexionadas","15 pasos laterales a la derecha, luego 15 a la izquierda","Mantener tensión en la banda","Core activado, tronco erguido"] },
@@ -706,7 +749,6 @@ const dayData = {
         exercises: [
             { id: "bici_vie", section: "Calentamiento", name: "Bici estática", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Ajustar asiento a altura de cadera","Resistencia baja-media","Ritmo cómodo, sin forzar rodillas","Objetivo: entrar en calor, no cansar"] },
             { id: "mov_tobillo_vie", section: "Calentamiento", name: "Movilidad tobillo y cadera", emoji: "🦶", sets: "-", reps: "10 c/lado", rest: "-", hasLoad: false, noImage: true, instructions: ["De pie apoyado en pared, círculos de tobillo 10 hacia cada lado","Balanceo de pierna adelante-atrás con rodilla extendida, 10 reps","Balanceo lateral de pierna, 10 reps c/lado","Movimiento controlado"] },
-            ...protocoloRodilla('_vie'),
             { id: "step_down", section: "Bloque 1 — Unilateral Piernas", name: "Step-down excéntrico", emoji: "👣", sets: "3", reps: "8 c/pierna", rest: "90 seg", hasLoad: false, trackReps: true, instructions: ["Pararse en un escalón o step de ~20 cm","Pie de trabajo en el borde, pie libre en el aire","Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo","Volver subiendo con el mismo pie","Rodilla delantera alineada sobre el segundo dedo del pie","Dolor máximo permitido: 3/10"] },
             { id: "prensa_unilateral", section: "Bloque 1 — Unilateral Piernas", name: "Prensa unilateral (rango parcial)", emoji: "🦿", sets: "3", reps: "12 c/pierna", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Prensa con una sola pierna por vez","Pie en el centro de la plataforma, ancho de cadera","Flexión de rodilla máxima: 70° — no bajar más","Empujar hasta casi extender — no bloquear la rodilla","Bajar de forma lenta y controlada — 3 segundos","Peso conservador: priorizar técnica"] },
             { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
@@ -739,6 +781,27 @@ const dayData = {
     }
 };
 
+// Sesión Rodilla: fija, igual todos los días. Reutiliza las definiciones de los
+// otros días (clonadas con id rod_*) para no duplicar instrucciones.
+const reusarEjercicio = (idOrigen, idNuevo, cambios) => {
+    const origen = Object.values(dayData).flatMap(d => d.exercises).find(e => e.id === idOrigen);
+    return { ...origen, id: idNuevo, ...cambios };
+};
+
+dayData.rodilla = {
+    subtitle: "Sesión de rodilla",
+    exercises: [
+        reusarEjercicio("bici", "rod_bici", {}),
+        ...protocoloRodilla("rod_"),
+        reusarEjercicio("puente_gluteo", "rod_puente", { section: "Cadera y pantorrilla" }),
+        reusarEjercicio("fb_talones", "rod_talones", { section: "Cadera y pantorrilla" }),
+        reusarEjercicio("caminata_banda_mie", "rod_caminata_banda", { section: "Cadera y pantorrilla" }),
+        { ...reusarEjercicio("estir_general", "rod_estir", { section: "Vuelta a la calma", reps: "30 seg c/lado" }),
+          instructions: dayData.lunes.exercises.find(e => e.id === "estir_general").instructions.slice(0, 4) },
+        reusarEjercicio("caminata_cinta", "rod_caminata_cinta", {})
+    ]
+};
+
 // ── ESTADO ─────────────────────────────────────────────────────────────────────
 let currentDay = 'lunes';
 let completedExercises = new Set();
@@ -762,93 +825,144 @@ function getAutoDay() {
 // ── COMPLETADOS DEL DÍA (persistidos, se resetean cada nueva fecha) ─────────────
 function completadoKey(day) { return `entreno_completado_${day}_${todayStr()}`; }
 
+function idsValidos(day) { return new Set(dayData[day].exercises.map(e => e.id)); }
+
+// Los ids guardados que ya no existen en el día (ej. el protocolo retirado de
+// lunes/miércoles/viernes) no entran al set en memoria, pero no se borran del
+// storage. Si había alguno guardado hoy, igual cuenta como sesión entrenada.
 function loadCompletedForDay(day) {
     completedExercises = new Set();
-    const prefix = `entreno_completado_${day}_`;
-    const todayKey = completadoKey(day);
     try {
-        Object.keys(localStorage).forEach(k => {
-            if (k.startsWith(prefix) && k !== todayKey) localStorage.removeItem(k);
-        });
-        const raw = localStorage.getItem(todayKey);
+        const raw = localStorage.getItem(completadoKey(day));
         if (raw) {
             const arr = JSON.parse(raw);
-            if (Array.isArray(arr)) completedExercises = new Set(arr);
+            if (Array.isArray(arr)) {
+                const validos = idsValidos(day);
+                completedExercises = new Set(arr.filter(id => validos.has(id)));
+                if (arr.length > 0) marcarEntrenado(day, todayStr());
+            }
         }
     } catch(e) {}
 }
 
 function saveCompletedForDay(day) {
-    try { localStorage.setItem(completadoKey(day), JSON.stringify([...completedExercises])); } catch(e) {}
-}
-
-// ── PROGRESO SEMANAL (lunes/miércoles/viernes, se resetea cada semana) ──────────
-// "Día completado" = al menos un ejercicio marcado con el check ese día (no hace
-// falta tildar los 15/13/12, alcanza con haber ido).
-function weekKeyForDate(dateObj) {
-    const dow = dateObj.getDay();
-    const diffToMonday = (dow === 0 ? -6 : 1) - dow;
-    const monday = new Date(dateObj);
-    monday.setDate(dateObj.getDate() + diffToMonday);
-    return `entreno_semana_${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
-}
-
-function weekKey() { return weekKeyForDate(new Date()); }
-
-function getWeekProgress(key) {
     try {
-        const raw = localStorage.getItem(key || weekKey());
-        if (raw) return JSON.parse(raw);
+        const key = completadoKey(day);
+        const validos = idsValidos(day);
+        let retirados = [];
+        try { retirados = (JSON.parse(localStorage.getItem(key)) || []).filter(id => !validos.has(id)); } catch(e) {}
+        localStorage.setItem(key, JSON.stringify([...completedExercises, ...retirados]));
     } catch(e) {}
-    return {};
 }
 
-function markDayCompletedInWeekForDate(day, dateObj) {
-    if (!['lunes', 'miercoles', 'viernes'].includes(day)) return;
-    const key = weekKeyForDate(dateObj);
-    const wp = getWeekProgress(key);
-    if (wp[day]) return;
-    wp[day] = true;
-    try { localStorage.setItem(key, JSON.stringify(wp)); } catch(e) {}
+// ── DÍAS ENTRENADOS (por fecha, con la o las sesiones que lo originaron) ────────
+// Un día cuenta como entrenado si en alguna sesión (lunes, miercoles, viernes,
+// fullbody, rodilla) hubo al menos un ejercicio completado o un registro de
+// carga/reps. Se cuentan fechas distintas: dos sesiones el mismo día valen uno.
+// Forma: { "2026-10-14": ["rodilla", "lunes"], ... }
+function diasEntrenadosKey() { return 'entreno_dias_entrenados'; }
+
+function getDiasEntrenados() {
+    try {
+        const o = JSON.parse(localStorage.getItem(diasEntrenadosKey()));
+        return o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+    } catch(e) { return {}; }
 }
 
-function markDayCompletedInWeek(day) { markDayCompletedInWeekForDate(day, new Date()); }
-
-function checkAndMarkWeekProgress() {
-    if (completedExercises.size >= 1) markDayCompletedInWeek(currentDay);
-}
-
-// Reconstruye el progreso semanal (y los checks del día de hoy) a partir del
-// historial real del Sheet — así el contador no depende de haber usado la app
-// con esta lógica desde el día 1.
-function backfillProgresoDesdeSheet(rows) {
-    const porDiaFecha = {}; // `${dia}|${fechaISO}` -> true (hubo al menos 1 completado)
-    rows.forEach(row => {
-        if (row['Completado'] !== 'sí') return;
-        const dia = row['Día'];
-        if (!dia || !dayData[dia]) return;
-        const fechaISO = row['Fecha'] ? String(row['Fecha']).slice(0, 10) : null;
-        if (!fechaISO) return;
-        porDiaFecha[`${dia}|${fechaISO}`] = true;
+function agregarEntrenados(entradas) {
+    const mapa = getDiasEntrenados();
+    let cambio = false;
+    entradas.forEach(([sesion, fecha]) => {
+        if (!dayData[sesion] || !fecha) return;
+        const arr = Array.isArray(mapa[fecha]) ? mapa[fecha] : [];
+        if (arr.includes(sesion)) return;
+        mapa[fecha] = [...arr, sesion];
+        cambio = true;
     });
+    if (cambio) { try { localStorage.setItem(diasEntrenadosKey(), JSON.stringify(mapa)); } catch(e) {} }
+    return cambio;
+}
 
-    Object.keys(porDiaFecha).forEach(key => {
-        const [dia, fechaISO] = key.split('|');
-        const dateObj = new Date(fechaISO + 'T00:00:00');
-        markDayCompletedInWeekForDate(dia, dateObj);
-        if (dia === currentDay && fechaISO === todayStr()) {
-            const idsDeHoy = dayData[dia].exercises.map(e => e.id);
-            const marcadosHoy = new Set();
-            rows.forEach(r => {
-                if (r['Completado'] === 'sí' && r['Día'] === dia && String(r['Fecha']).slice(0, 10) === fechaISO) {
-                    const id = nameToId[dia] && nameToId[dia][r['Ejercicio']];
-                    if (id) marcadosHoy.add(id);
-                }
-            });
-            completedExercises = new Set([...completedExercises, ...marcadosHoy]);
-            saveCompletedForDay(dia);
+function marcarEntrenado(sesion, fecha) { return agregarEntrenados([[sesion, fecha]]); }
+
+// Fecha del Sheet (ISO en UTC, ej. 2026-06-03T03:00:00.000Z = medianoche en
+// Uruguay) a fecha local YYYY-MM-DD, para no correr el día.
+function fechaLocalISO(valor) {
+    if (!valor) return null;
+    const d = new Date(valor);
+    if (isNaN(d)) return null;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Lunes (YYYY-MM-DD) de la semana de una fecha; la semana arranca el lunes.
+function lunesDeSemana(fechaISO) {
+    const [y, m, dd] = fechaISO.split('-').map(Number);
+    const d = new Date(y, m - 1, dd);
+    d.setDate(d.getDate() + ((d.getDay() === 0 ? -6 : 1) - d.getDay()));
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function contarDiasEntrenados(desde) {
+    return Object.entries(getDiasEntrenados())
+        .filter(([fecha, sesiones]) => Array.isArray(sesiones) && sesiones.length > 0 && (!desde || desde(fecha)))
+        .length;
+}
+
+function diasEntrenadosEstaSemana() {
+    const lunes = lunesDeSemana(todayStr());
+    return contarDiasEntrenados(fecha => lunesDeSemana(fecha) === lunes);
+}
+
+function diasEntrenadosDesdeInicio() {
+    const inicio = ensurePlanConfig().startDate;
+    return contarDiasEntrenados(fecha => fecha >= inicio);
+}
+
+// Ejercicios del protocolo del fisio que antes vivían en lunes/miércoles/viernes:
+// sus filas históricas del Sheet se mapean a los ids rod_ de la pestaña Rodilla.
+const protocoloLegacyId = Object.fromEntries(protocoloRodilla('rod_').map(e => [e.name, e.id]));
+const DIAS_CON_PROTOCOLO_LEGACY = ['lunes', 'miercoles', 'viernes'];
+
+function resolverIdSheet(dia, nombre) {
+    const propio = nameToId[dia] && nameToId[dia][nombre];
+    if (propio) return propio;
+    if (DIAS_CON_PROTOCOLO_LEGACY.includes(dia)) return protocoloLegacyId[nombre] || null;
+    return null;
+}
+
+// Reconstruye los días entrenados (y los checks de hoy) desde el historial real
+// del Sheet. Las filas que no mapean a ningún ejercicio actual se ignoran sin error.
+function backfillProgresoDesdeSheet(rows) {
+    const entradas = [];
+    const marcadosHoy = new Set();
+    const hoy = todayStr();
+
+    rows.forEach(row => {
+        const dia = row['Día'];
+        const nombre = row['Ejercicio'];
+        if (!dia || !dayData[dia]) return;
+        const fecha = fechaLocalISO(row['Fecha']);
+        if (!fecha) return;
+        const completado = row['Completado'] === 'sí';
+        const carga = row['Carga'] == null ? '' : String(row['Carga']);
+        const reps = row['Reps'] == null ? '' : String(row['Reps']);
+        const tieneRegistro = (carga !== '' && carga !== '—') || (reps !== '' && reps !== '—');
+        if (!completado && !tieneRegistro) return;
+
+        entradas.push([dia, fecha]);
+        const id = resolverIdSheet(dia, nombre);
+        if (!id) return;
+        if (completado && fecha === hoy) {
+            const ids = idsValidos(currentDay);
+            if (ids.has(id)) marcadosHoy.add(id);
         }
     });
+
+    agregarEntrenados(entradas);
+    if (marcadosHoy.size > 0) {
+        completedExercises = new Set([...completedExercises, ...marcadosHoy]);
+        saveCompletedForDay(currentDay);
+    }
 }
 
 // ── CONFIGURACIÓN DEL PLAN (semana X de Y) ──────────────────────────────────────
@@ -865,14 +979,19 @@ function getPlanConfig() {
 function ensurePlanConfig() {
     let cfg = getPlanConfig();
     if (!cfg || !cfg.startDate || !cfg.weeks) {
-        cfg = { startDate: todayStr(), weeks: 12 };
+        cfg = { startDate: todayStr(), weeks: 12, weeklyGoal: 3 };
         try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
     }
     return cfg;
 }
 
-function savePlanConfig(startDate, weeks) {
-    const cfg = { startDate, weeks };
+function getWeeklyGoal() {
+    const goal = parseInt(ensurePlanConfig().weeklyGoal, 10);
+    return goal > 0 ? goal : 3;
+}
+
+function savePlanConfig(startDate, weeks, weeklyGoal) {
+    const cfg = { startDate, weeks, weeklyGoal };
     try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
     return cfg;
 }
@@ -892,6 +1011,8 @@ function abrirSettings() {
     const cfg = ensurePlanConfig();
     document.getElementById('settingsStartDate').value = cfg.startDate;
     document.getElementById('settingsWeeks').value = cfg.weeks;
+    document.getElementById('settingsGoal').value = getWeeklyGoal();
+    document.getElementById('settingsSubtitle').textContent = `Días entrenados desde el inicio: ${diasEntrenadosDesdeInicio()}`;
     document.getElementById('settingsOverlay').classList.add('open');
 }
 
@@ -902,8 +1023,9 @@ function cerrarSettings() {
 function guardarSettings() {
     const startDate = document.getElementById('settingsStartDate').value;
     const weeks = parseInt(document.getElementById('settingsWeeks').value, 10) || 12;
+    const weeklyGoal = parseInt(document.getElementById('settingsGoal').value, 10) || 3;
     if (!startDate) { cerrarSettings(); return; }
-    savePlanConfig(startDate, weeks);
+    savePlanConfig(startDate, weeks, weeklyGoal);
     cerrarSettings();
     renderProgress();
 }
@@ -922,15 +1044,13 @@ function setRing(idPrefix, done, total) {
 }
 
 function renderProgress() {
-    checkAndMarkWeekProgress();
-
     const total = dayData[currentDay].exercises.length;
     const done = completedExercises.size;
     setRing('Hoy', done, total);
 
-    const wp = getWeekProgress();
-    const weekDone = ['lunes', 'miercoles', 'viernes'].filter(d => wp[d]).length;
-    setRing('Semana', weekDone, 3);
+    const weekDone = diasEntrenadosEstaSemana();
+    const weekGoal = getWeeklyGoal();
+    setRing('Semana', weekDone, weekGoal);
 
     const { week, totalWeeks } = currentPlanWeek();
     setRing('Plan', week, totalWeeks);
@@ -938,7 +1058,7 @@ function renderProgress() {
     const resumen = document.getElementById('progresoResumen');
     if (resumen) {
         resumen.innerHTML = `<span>Hoy</span> <span class="frac frac-hoy">${done}/${total}</span>` +
-            `<span class="sep"> · </span><span>Semana</span> <span class="frac frac-semana">${weekDone}/3</span>` +
+            `<span class="sep"> · </span><span>Semana</span> <span class="frac frac-semana">${weekDone}/${weekGoal}</span>` +
             `<span class="sep"> · </span><span>Plan</span> <span class="frac frac-plan">${week}/${totalWeeks}</span>`;
     }
 }
@@ -1028,6 +1148,20 @@ function formatRecord(ex, r) {
     return ex.hasLoad ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
 }
 
+// ── CONTADOR DE REPS (persistido por ejercicio y fecha) ──────────────────────────
+function contadorKey(id) { return `entreno_contador_${id}_${todayStr()}`; }
+
+function getContador(id) {
+    try { return Math.max(0, parseInt(localStorage.getItem(contadorKey(id)), 10) || 0); } catch(e) { return 0; }
+}
+
+function ajustarContador(id, delta) {
+    const valor = Math.max(0, getContador(id) + delta);
+    try { localStorage.setItem(contadorKey(id), String(valor)); } catch(e) {}
+    const el = document.getElementById(`contadorValor_${id}`);
+    if (el) el.textContent = valor;
+}
+
 // ── MODAL ──────────────────────────────────────────────────────────────────────
 function abrirModal(exerciseId) {
     activeExerciseId = exerciseId;
@@ -1074,6 +1208,7 @@ function abrirModal(exerciseId) {
     } else {
         document.getElementById('modalCarga').value = hist.length > 0 && hist[0].carga !== '—' ? hist[0].carga : '';
         document.getElementById('modalReps').value = hist.length > 0 && hist[0].reps !== '—' ? hist[0].reps : '';
+        if (ex.contadorReps && getContador(exerciseId) > 0) document.getElementById('modalReps').value = getContador(exerciseId);
     }
 
     document.getElementById('modalOverlay').classList.add('open');
@@ -1096,6 +1231,8 @@ function guardarDesdeModal() {
         if (!carga && !velocidad && !reps) { cerrarModal(); return; }
         const record = addRecord(id, carga || '—', reps || '—', velocidad || '—');
         enviarASheets(id, carga || '—', reps || '—', record, velocidad || '—');
+        marcarEntrenado(currentDay, todayStr());
+        renderProgress();
         cerrarModal();
         renderRegistroResumen(id);
         renderCardMeta(id);
@@ -1107,6 +1244,8 @@ function guardarDesdeModal() {
     if ((!carga || carga === '—') && !reps) { cerrarModal(); return; }
     const record = addRecord(id, carga || '—', reps || '—');
     enviarASheets(id, carga || '—', reps || '—', record);
+    marcarEntrenado(currentDay, todayStr());
+    renderProgress();
     cerrarModal();
     renderRegistroResumen(id);
     renderCardMeta(id);
@@ -1176,6 +1315,7 @@ function marcarCompleto(exerciseId, exerciseName, event) {
     if (card) card.classList.add('completed');
     if (check) { check.classList.add('done'); check.textContent = '✓'; }
     saveCompletedForDay(currentDay);
+    marcarEntrenado(currentDay, todayStr());
     renderProgress();
     const now = new Date();
     const fecha = now.toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' });
@@ -1221,6 +1361,15 @@ function renderList(day) {
                 }
             </div>` : '';
 
+        // Contador de reps (solo ejercicios con contadorReps)
+        const contadorHTML = ex.contadorReps ? `
+            <div class="contador-row">
+                <span class="contador-label">Contador de reps</span>
+                <button class="btn-contador" onclick="ajustarContador('${ex.id}', -1)" aria-label="Restar una rep">−</button>
+                <span class="contador-valor" id="contadorValor_${ex.id}">${getContador(ex.id)}</span>
+                <button class="btn-contador btn-contador-mas" onclick="ajustarContador('${ex.id}', 1)" aria-label="Sumar una rep">+</button>
+            </div>` : '';
+
         // Specs
         const specsHTML = `<div class="ex-specs">
             ${ex.sets !== '-' ? `<div class="spec">Series: ${ex.sets}</div>` : ''}
@@ -1249,6 +1398,7 @@ function renderList(day) {
                     ${!ex.noImage ? `<button class="btn-action" onclick="openLightbox('', '${ex.name}', '${ex.emoji}')">👁 Imagen</button>` : ''}
                 </div>
                 <ul class="instr-inline" id="instr_${ex.id}">${ex.instructions.map(i => `<li>${i}</li>`).join('')}</ul>
+                ${contadorHTML}
                 ${registroHTML}
             </div>
         </div>`;
@@ -1378,7 +1528,7 @@ async function cargarDesdeSheets() {
             if (!nombre || completado === 'sí') return;
             if (!carga && !reps) return;
             if (String(carga) === '—' && String(reps) === '—') return;
-            const id = nameToId[dia] && nameToId[dia][nombre];
+            const id = resolverIdSheet(dia, nombre);
             if (!id) return;
 
             let velocidad;
