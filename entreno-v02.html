@@ -336,6 +336,27 @@
             color: #10b981;
         }
 
+        .btn-contador-reset {
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* TIMER DE DESCANSO */
+        .timer-sheet { align-items: center; text-align: center; padding-bottom: 28px; }
+        .timer-display {
+            font-size: 72px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #fff;
+            line-height: 1.1;
+            padding: 8px 0;
+        }
+        .timer-sheet.done .timer-display { color: #10b981; animation: timerBlink 0.6s ease-in-out infinite alternate; }
+        @keyframes timerBlink { from { opacity: 1; } to { opacity: 0.35; } }
+        .timer-sheet .modal-actions { width: 100%; }
+
         /* REGISTRO */
         .registro-row {
             display: flex;
@@ -398,18 +419,18 @@
             display: none;
             list-style: none;
             flex-direction: column;
-            gap: 12px;
-            padding: 6px 4px 4px;
+            gap: 8px;
+            padding: 4px 4px 2px;
         }
 
         .instr-inline.open { display: flex; }
 
         .instr-inline li {
-            font-size: 17px;
-            line-height: 1.45;
-            color: #ddd;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #ccc;
             position: relative;
-            padding-left: 20px;
+            padding-left: 16px;
         }
 
         .instr-inline li:before {
@@ -670,6 +691,21 @@
     </div>
 </div>
 
+<!-- TIMER DE DESCANSO -->
+<div class="modal-overlay" id="timerOverlay">
+    <div class="modal-sheet timer-sheet" id="timerSheet">
+        <div>
+            <div class="modal-title" id="timerTitle">Descanso</div>
+            <div class="modal-subtitle" id="timerSubtitle"></div>
+        </div>
+        <div class="timer-display" id="timerDisplay">0:00</div>
+        <div class="modal-actions">
+            <button class="btn-modal-guardar" onclick="reiniciarTimer()">Reiniciar</button>
+            <button class="btn-modal-cancelar" onclick="cerrarTimer()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <!-- SETTINGS: PLAN DE ENTRENAMIENTO -->
 <div class="modal-overlay" id="settingsOverlay">
     <div class="modal-sheet">
@@ -701,8 +737,8 @@
 <script>
 // ── DATOS ─────────────────────────────────────────────────────────────────────
 const protocoloRodilla = prefix => [
-    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
-    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
+    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
+    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, restTimer: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
 
 const dayData = {
@@ -751,7 +787,7 @@ const dayData = {
             { id: "mov_tobillo_vie", section: "Calentamiento", name: "Movilidad tobillo y cadera", emoji: "🦶", sets: "-", reps: "10 c/lado", rest: "-", hasLoad: false, noImage: true, instructions: ["De pie apoyado en pared, círculos de tobillo 10 hacia cada lado","Balanceo de pierna adelante-atrás con rodilla extendida, 10 reps","Balanceo lateral de pierna, 10 reps c/lado","Movimiento controlado"] },
             { id: "step_down", section: "Bloque 1 — Unilateral Piernas", name: "Step-down excéntrico", emoji: "👣", sets: "3", reps: "8 c/pierna", rest: "90 seg", hasLoad: false, trackReps: true, instructions: ["Pararse en un escalón o step de ~20 cm","Pie de trabajo en el borde, pie libre en el aire","Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo","Volver subiendo con el mismo pie","Rodilla delantera alineada sobre el segundo dedo del pie","Dolor máximo permitido: 3/10"] },
             { id: "prensa_unilateral", section: "Bloque 1 — Unilateral Piernas", name: "Prensa unilateral (rango parcial)", emoji: "🦿", sets: "3", reps: "12 c/pierna", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Prensa con una sola pierna por vez","Pie en el centro de la plataforma, ancho de cadera","Flexión de rodilla máxima: 70° — no bajar más","Empujar hasta casi extender — no bloquear la rodilla","Bajar de forma lenta y controlada — 3 segundos","Peso conservador: priorizar técnica"] },
-            { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
+            { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso adicional (kg)", trackReps: true, instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
             { id: "press_inclinado", section: "Bloque 2 — Superior Combinado", name: "Press inclinado con mancuernas", emoji: "💪", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Banco inclinado a 30-45°","Mancuernas a altura del pecho superior","Empujar hacia arriba y ligeramente juntar","Bajar controlado — codos a 45° del cuerpo","Escápulas retraídas durante todo el movimiento"] },
             { id: "dominadas_asistidas", section: "Bloque 2 — Superior Combinado", name: "Jalón agarre neutro o dominadas asistidas", emoji: "🔼", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Peso asistencia / máquina (kg)", instructions: ["Agarre neutro (palmas enfrentadas)","Tirar hacia el pecho superior con codos pegados al torso","Retracción escapular al llegar arriba","Subir controlado — no soltar el peso","Si hay máquina de dominadas asistidas, usar ese peso de apoyo"] },
             { id: "remo_unilateral", section: "Bloque 2 — Superior Combinado", name: "Remo unilateral con mancuerna", emoji: "🚣", sets: "3", reps: "10-12 c/brazo", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna (kg)", instructions: ["Apoyar rodilla y mano contraria en un banco","Espalda paralela al suelo, columna neutra","Tirar la mancuerna hacia la costilla","Codo pasa ligeramente por encima del torso","Bajar con control"] },
@@ -769,7 +805,7 @@ const dayData = {
             { id: "fb_mov_hombros", section: "Calentamiento", name: "Movilidad hombros", emoji: "🔄", sets: "-", reps: "10 círculos c/u", rest: "-", hasLoad: false, noImage: true, instructions: ["De pie, brazos extendidos a los lados","10 círculos hacia adelante","10 círculos hacia atrás","Movimiento amplio y controlado"] },
             { id: "fb_extension", section: "Bloque 1 — Piernas", name: "Extensión de piernas", emoji: "🦿", sets: "3", reps: "12", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Sentado en máquina, espalda apoyada","Ajustar rodillo sobre empeine","Extender piernas completamente","Bajar controlado, sin golpear peso","Carga moderada — primera sesión de vuelta"] },
             { id: "fb_puente", section: "Bloque 1 — Piernas", name: "Puente de glúteos con carga", emoji: "🍑", sets: "3", reps: "15", rest: "60 seg", hasLoad: true, loadLabel: "Peso sobre cadera (kg)", instructions: ["Acostado boca arriba, rodillas flexionadas","Colocar mancuerna o barra sobre la cadera","Empujar talones contra el suelo y elevar cadera","Llegar a línea recta hombro-cadera-rodilla","Apretar glúteos arriba — 1 segundo de pausa"] },
-            { id: "fb_talones", section: "Bloque 1 — Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "12 c/pierna", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["Apoyar solo la punta del pie en el borde de un step","Talón en el aire — bajar por debajo del nivel del step","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
+            { id: "fb_talones", section: "Bloque 1 — Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "12 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso adicional (kg)", trackReps: true, instructions: ["Apoyar solo la punta del pie en el borde de un step","Talón en el aire — bajar por debajo del nivel del step","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
             { id: "fb_remo", section: "Bloque 2 — Superior", name: "Remo en máquina / polea baja", emoji: "🚣", sets: "3", reps: "12", rest: "90 seg", hasLoad: true, loadLabel: "Peso (kg)", instructions: ["Sentado frente a la polea baja con agarre neutro","Espalda erguida, pecho fuera","Tirar hacia el abdomen llevando codos hacia atrás","Apretar escápulas en la posición final — 1 segundo","Extender brazos de forma controlada"] },
             { id: "fb_press_militar", section: "Bloque 2 — Superior", name: "Press militar sentado", emoji: "🏋️", sets: "3", reps: "10", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Sentado con espalda apoyada","Mancuernas a altura de hombros","Empujar hacia arriba sin arquear espalda","Bajar controlado hasta hombros","Core activado durante todo el movimiento"] },
             { id: "fb_curl", section: "Bloque 2 — Superior", name: "Curl de bíceps con mancuernas", emoji: "💪", sets: "3", reps: "12", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["De pie, mancuernas a los costados con agarre supino","Flexionar codos llevando las mancuernas hacia los hombros","Codos pegados al torso","Bajar controlado","Alternar o hacer ambos juntos"] },
@@ -1145,7 +1181,8 @@ function findExercise(exerciseId) {
 
 function formatRecord(ex, r) {
     if (ex.trackCinta) return `Incl. ${r.carga} · Vel. ${r.velocidad} · ${r.reps} min`;
-    return ex.hasLoad ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
+    // Registros viejos de ejercicios que pasaron a llevar peso: carga vacía ('—').
+    return ex.hasLoad && r.carga && r.carga !== '—' ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
 }
 
 // ── CONTADOR DE REPS (persistido por ejercicio y fecha) ──────────────────────────
@@ -1155,12 +1192,123 @@ function getContador(id) {
     try { return Math.max(0, parseInt(localStorage.getItem(contadorKey(id)), 10) || 0); } catch(e) { return 0; }
 }
 
-function ajustarContador(id, delta) {
-    const valor = Math.max(0, getContador(id) + delta);
+function setContador(id, valor) {
     try { localStorage.setItem(contadorKey(id), String(valor)); } catch(e) {}
     const el = document.getElementById(`contadorValor_${id}`);
     if (el) el.textContent = valor;
 }
+
+function ajustarContador(id, delta) { setContador(id, Math.max(0, getContador(id) + delta)); }
+
+function resetearContador(id) { setContador(id, 0); }
+
+// ── TIMER DE DESCANSO ──────────────────────────────────────────────────────────
+// Cuenta contra un timestamp de fin (no por ticks), así sigue exacto aunque el
+// navegador frene el intervalo en segundo plano. El aviso es sonido + vibración
+// + parpadeo; iOS no soporta navigator.vibrate, ahí queda el sonido.
+let timerFin = 0, timerSegundos = 0, timerInt = null, timerAlarmaInt = null;
+let timerAudio = null, timerWake = null;
+
+function segundosDeTexto(texto) {
+    const m = String(texto).match(/(\d+)\s*(min|seg|s)\b/i);
+    if (!m) return 0;
+    return m[2].toLowerCase() === 'min' ? parseInt(m[1], 10) * 60 : parseInt(m[1], 10);
+}
+
+function formatoTimer(seg) {
+    return `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`;
+}
+
+function abrirTimer(exerciseId) {
+    const ex = findExercise(exerciseId);
+    timerSegundos = segundosDeTexto(ex.rest) || 120;
+    document.getElementById('timerTitle').textContent = 'Descanso';
+    document.getElementById('timerSubtitle').textContent = ex.name;
+    document.getElementById('timerOverlay').classList.add('open');
+    // El audio solo se habilita desde un gesto del usuario: se crea acá.
+    try {
+        timerAudio = timerAudio || new (window.AudioContext || window.webkitAudioContext)();
+        if (timerAudio.state === 'suspended') timerAudio.resume();
+    } catch(e) {}
+    reiniciarTimer();
+}
+
+async function pedirWakeLock() {
+    try {
+        if ('wakeLock' in navigator && !timerWake) {
+            timerWake = await navigator.wakeLock.request('screen');
+            timerWake.addEventListener('release', () => { timerWake = null; });
+        }
+    } catch(e) {}
+}
+
+function liberarWakeLock() {
+    try { if (timerWake) timerWake.release(); } catch(e) {}
+    timerWake = null;
+}
+
+function reiniciarTimer() {
+    clearInterval(timerInt);
+    clearInterval(timerAlarmaInt);
+    document.getElementById('timerSheet').classList.remove('done');
+    timerFin = Date.now() + timerSegundos * 1000;
+    pedirWakeLock();
+    tickTimer();
+    timerInt = setInterval(tickTimer, 250);
+}
+
+function tickTimer() {
+    const restante = Math.max(0, Math.ceil((timerFin - Date.now()) / 1000));
+    document.getElementById('timerDisplay').textContent = formatoTimer(restante);
+    if (restante <= 0) terminarTimer();
+}
+
+function terminarTimer() {
+    clearInterval(timerInt);
+    timerInt = null;
+    document.getElementById('timerSheet').classList.add('done');
+    liberarWakeLock();
+    alarmaTimer();
+    // Repite el aviso cada 3 seg (hasta 10 veces) por si no estás mirando el celu.
+    let veces = 0;
+    timerAlarmaInt = setInterval(() => { if (++veces > 10) clearInterval(timerAlarmaInt); else alarmaTimer(); }, 3000);
+}
+
+function alarmaTimer() {
+    try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400]); } catch(e) {}
+    try {
+        if (!timerAudio) return;
+        if (timerAudio.state === 'suspended') timerAudio.resume();
+        for (let i = 0; i < 3; i++) {
+            const t = timerAudio.currentTime + i * 0.35;
+            const osc = timerAudio.createOscillator();
+            const gain = timerAudio.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(0.6, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+            osc.connect(gain).connect(timerAudio.destination);
+            osc.start(t);
+            osc.stop(t + 0.3);
+        }
+    } catch(e) {}
+}
+
+function cerrarTimer() {
+    clearInterval(timerInt);
+    clearInterval(timerAlarmaInt);
+    timerInt = timerAlarmaInt = null;
+    try { if (navigator.vibrate) navigator.vibrate(0); } catch(e) {}
+    liberarWakeLock();
+    document.getElementById('timerOverlay').classList.remove('open');
+}
+
+// Al volver a la app (el wake lock se pierde al salir) se recalcula el tiempo.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !document.getElementById('timerOverlay').classList.contains('open')) return;
+    if (timerInt) { tickTimer(); pedirWakeLock(); }
+});
 
 // ── MODAL ──────────────────────────────────────────────────────────────────────
 function abrirModal(exerciseId) {
@@ -1365,6 +1513,7 @@ function renderList(day) {
         const contadorHTML = ex.contadorReps ? `
             <div class="contador-row">
                 <span class="contador-label">Contador de reps</span>
+                <button class="btn-contador btn-contador-reset" onclick="resetearContador('${ex.id}')" aria-label="Resetear contador">↺</button>
                 <button class="btn-contador" onclick="ajustarContador('${ex.id}', -1)" aria-label="Restar una rep">−</button>
                 <span class="contador-valor" id="contadorValor_${ex.id}">${getContador(ex.id)}</span>
                 <button class="btn-contador btn-contador-mas" onclick="ajustarContador('${ex.id}', 1)" aria-label="Sumar una rep">+</button>
@@ -1395,6 +1544,7 @@ function renderList(day) {
                 ${specsHTML}
                 <div class="action-row">
                     <button class="btn-action" onclick="toggleInstrucciones('${ex.id}')">📋 Instrucciones</button>
+                    ${ex.restTimer ? `<button class="btn-action" onclick="abrirTimer('${ex.id}')">⏱ Descanso</button>` : ''}
                     ${!ex.noImage ? `<button class="btn-action" onclick="openLightbox('', '${ex.name}', '${ex.emoji}')">👁 Imagen</button>` : ''}
                 </div>
                 <ul class="instr-inline" id="instr_${ex.id}">${ex.instructions.map(i => `<li>${i}</li>`).join('')}</ul>
