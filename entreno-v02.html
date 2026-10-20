@@ -344,7 +344,10 @@
         }
 
         /* TIMER DE DESCANSO */
-        .timer-sheet { align-items: center; text-align: center; padding-bottom: 28px; }
+        .modal-overlay.timer-overlay { align-items: center; padding: 20px; }
+        .modal-sheet.timer-sheet { align-items: center; text-align: center; border-radius: 16px; padding: 24px 20px; gap: 12px; }
+        .timer-sheet .modal-title { font-size: 18px; }
+        .timer-sheet .modal-subtitle { font-size: 13px; margin-top: 6px; line-height: 1.35; }
         .timer-display {
             font-size: 72px;
             font-weight: 700;
@@ -692,7 +695,7 @@
 </div>
 
 <!-- TIMER DE DESCANSO -->
-<div class="modal-overlay" id="timerOverlay">
+<div class="modal-overlay timer-overlay" id="timerOverlay">
     <div class="modal-sheet timer-sheet" id="timerSheet">
         <div>
             <div class="modal-title" id="timerTitle">Descanso</div>
