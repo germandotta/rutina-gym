@@ -339,6 +339,21 @@
             color: #10b981;
         }
 
+        /* SELECTOR DE UNIDAD (kg / lb) */
+        .input-unidad { display: flex; gap: 8px; align-items: stretch; }
+        .input-unidad input { flex: 1; min-width: 0; }
+        .unidad-toggle { display: flex; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; overflow: hidden; }
+        .unidad-toggle button {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: #aaa;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 0 12px;
+            cursor: pointer;
+        }
+        .unidad-toggle button.active { background: #10b981; color: #fff; }
+
         .btn-contador-reset {
             width: 36px;
             height: 36px;
@@ -513,7 +528,7 @@
         }
 
         .modal-title { font-size: 14px; font-weight: 700; color: #fff; }
-        .modal-subtitle { font-size: 11px; color: #555; margin-top: -8px; }
+        .modal-subtitle { font-size: 11px; color: #555; margin-top: 4px; }
 
         .modal-inputs { display: flex; gap: 10px; }
 
@@ -678,7 +693,13 @@
         <div class="modal-inputs">
             <div class="modal-field" id="modalCargaField">
                 <label id="modalCargaLabel">Carga</label>
-                <input type="text" id="modalCarga" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*">
+                <div class="input-unidad">
+                    <input type="text" id="modalCarga" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*">
+                    <div class="unidad-toggle" id="modalUnidadRow" style="display:none">
+                        <button type="button" id="unidadKg" onclick="setUnidadModal('kg')">kg</button>
+                        <button type="button" id="unidadLb" onclick="setUnidadModal('lb')">lb</button>
+                    </div>
+                </div>
             </div>
             <div class="modal-field" id="modalVelocidadField" style="display:none">
                 <label id="modalVelocidadLabel">Velocidad</label>
@@ -761,7 +782,7 @@ const dayData = {
             { id: "press_pecho", section: "Bloque 2 — Empuje Superior", name: "Press de pecho", emoji: "💪", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Acostado en banco plano","Mancuernas a altura del pecho","Empujar hacia arriba y ligeramente juntar","Bajar controlado hasta nivel pecho","Escápulas retraídas — hombros atrás y abajo"] },
             { id: "press_militar", section: "Bloque 2 — Empuje Superior", name: "Press militar sentado", emoji: "🏋️", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Sentado con espalda apoyada","Mancuernas a altura de hombros","Empujar hacia arriba sin arquear espalda","Bajar controlado hasta hombros","Core activado durante todo el movimiento"] },
             { id: "elevaciones_laterales", section: "Bloque 2 — Empuje Superior", name: "Elevaciones laterales", emoji: "🙆", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["De pie, mancuernas a los lados","Levantar brazos lateralmente hasta altura de hombros","Codos ligeramente flexionados","Bajar controlado — 2-3 segundos de bajada","No usar impulso — peso moderado"] },
-            { id: "fondos_banco", section: "Bloque 2 — Empuje Superior", name: "Fondos en banco", emoji: "💺", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["Manos en borde de banco, dedos hacia adelante","Piernas extendidas adelante (más difícil) o flexionadas (más fácil)","Bajar flexionando codos hasta 90°","Empujar para subir — codos no van más allá de 90°","Core firme, no hundirse entre los hombros"] },
+            { id: "fondos_banco", section: "Bloque 2 — Empuje Superior", name: "Fondos en banco", emoji: "💺", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, instructions: ["Manos en borde de banco, dedos hacia adelante","Piernas extendidas adelante (más difícil) o flexionadas (más fácil)","Bajar flexionando codos hasta 90°","Empujar para subir — codos no van más allá de 90°","Core firme, no hundirse entre los hombros"] },
             { id: "plancha_frontal", section: "Bloque 3 — Core", name: "Plancha frontal", emoji: "🏋️‍♀️", sets: "3", reps: "45 seg", rest: "45 seg", hasLoad: false, instructions: ["Apoyar antebrazos y puntas de pies","Cuerpo recto de cabeza a talones","Core apretado, glúteos activados","NO dejar caer la cadera","Respirar normal"] },
             { id: "plancha_lateral", section: "Bloque 3 — Core", name: "Plancha lateral", emoji: "⬅️", sets: "2", reps: "30 seg c/lado", rest: "30 seg", hasLoad: false, instructions: ["Apoyar antebrazo y borde externo del pie","Cuerpo recto en posición lateral","Cadera elevada — no dejar caer","Hacer un lado, descansar, cambiar","Core activado todo el tiempo"] },
             { id: "estir_general", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado","Tríceps: brazo arriba, codo flexionado detrás de la cabeza, empujar suave con la otra mano, 30 seg c/lado"] },
@@ -791,14 +812,14 @@ const dayData = {
         exercises: [
             { id: "bici_vie", section: "Calentamiento", name: "Bici estática", emoji: "🚴", sets: "-", reps: "5 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Ajustar asiento a altura de cadera","Resistencia baja-media","Ritmo cómodo, sin forzar rodillas","Objetivo: entrar en calor, no cansar"] },
             { id: "mov_tobillo_vie", section: "Calentamiento", name: "Movilidad tobillo y cadera", emoji: "🦶", sets: "-", reps: "10 c/lado", rest: "-", hasLoad: false, noImage: true, instructions: ["De pie apoyado en pared, círculos de tobillo 10 hacia cada lado","Balanceo de pierna adelante-atrás con rodilla extendida, 10 reps","Balanceo lateral de pierna, 10 reps c/lado","Movimiento controlado"] },
-            { id: "step_down", section: "Bloque 1 — Unilateral Piernas", name: "Step-down excéntrico", emoji: "👣", sets: "3", reps: "8 c/pierna", rest: "90 seg", hasLoad: false, trackReps: true, instructions: ["Pararse en un escalón o step de ~20 cm","Pie de trabajo en el borde, pie libre en el aire","Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo","Volver subiendo con el mismo pie","Rodilla delantera alineada sobre el segundo dedo del pie","Dolor máximo permitido: 3/10"] },
+            { id: "step_down", section: "Bloque 1 — Unilateral Piernas", name: "Step-down excéntrico", emoji: "👣", sets: "3", reps: "8 c/pierna", rest: "90 seg", hasLoad: false, instructions: ["Pararse en un escalón o step de ~20 cm","Pie de trabajo en el borde, pie libre en el aire","Bajar lentamente (3 segundos) hasta que el talón libre casi toca el suelo","Volver subiendo con el mismo pie","Rodilla delantera alineada sobre el segundo dedo del pie","Dolor máximo permitido: 3/10"] },
             { id: "prensa_unilateral", section: "Bloque 1 — Unilateral Piernas", name: "Prensa unilateral (rango parcial)", emoji: "🦿", sets: "3", reps: "12 c/pierna", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Prensa con una sola pierna por vez","Pie en el centro de la plataforma, ancho de cadera","Flexión de rodilla máxima: 70° — no bajar más","Empujar hasta casi extender — no bloquear la rodilla","Bajar de forma lenta y controlada — 3 segundos","Peso conservador: priorizar técnica"] },
-            { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso adicional (kg)", trackReps: true, instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
+            { id: "elevacion_talones_uni", section: "Bloque 1 — Unilateral Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso adicional (kg)", instructions: ["De pie en el borde de un escalón o step","Apoyar solo la punta del pie, talón en el aire","Bajar el talón por debajo del nivel del escalón","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
             { id: "press_inclinado", section: "Bloque 2 — Superior Combinado", name: "Press inclinado con mancuernas", emoji: "💪", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Banco inclinado a 30-45°","Mancuernas a altura del pecho superior","Empujar hacia arriba y ligeramente juntar","Bajar controlado — codos a 45° del cuerpo","Escápulas retraídas durante todo el movimiento"] },
             { id: "dominadas_asistidas", section: "Bloque 2 — Superior Combinado", name: "Jalón agarre neutro o dominadas asistidas", emoji: "🔼", sets: "3", reps: "10-12", rest: "90 seg", hasLoad: true, loadLabel: "Peso asistencia / máquina (kg)", instructions: ["Agarre neutro (palmas enfrentadas)","Tirar hacia el pecho superior con codos pegados al torso","Retracción escapular al llegar arriba","Subir controlado — no soltar el peso","Si hay máquina de dominadas asistidas, usar ese peso de apoyo"] },
             { id: "remo_unilateral", section: "Bloque 2 — Superior Combinado", name: "Remo unilateral con mancuerna", emoji: "🚣", sets: "3", reps: "10-12 c/brazo", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna (kg)", instructions: ["Apoyar rodilla y mano contraria en un banco","Espalda paralela al suelo, columna neutra","Tirar la mancuerna hacia la costilla","Codo pasa ligeramente por encima del torso","Bajar con control"] },
             { id: "crunch_polea", section: "Bloque 3 — Core", name: "Crunch en polea", emoji: "🔗", sets: "3", reps: "12-15", rest: "60 seg", hasLoad: true, loadLabel: "Peso polea (kg)", instructions: ["Polea alta con cuerda, de rodillas frente a la máquina","Agarrar la cuerda detrás de la nuca o a los lados de la cabeza","Flexionar el tronco llevando los codos hacia las rodillas","No tirar con los brazos — el movimiento viene del abdomen","Volver controlado sin hiperextender la espalda","Peso moderado — priorizar recorrido completo"] },
-            { id: "elevacion_piernas", section: "Bloque 3 — Core", name: "Elevación de piernas colgado", emoji: "🏗️", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, trackReps: true, instructions: ["Colgado de barra con agarre prono","Elevar rodillas hacia el pecho — o piernas extendidas si hay fuerza","Bajar controlado — sin balancear el cuerpo","Core activado en todo el recorrido","Si hay soporte de codos (captain's chair), usarlo"] },
+            { id: "elevacion_piernas", section: "Bloque 3 — Core", name: "Elevación de piernas colgado", emoji: "🏗️", sets: "3", reps: "10-12", rest: "60 seg", hasLoad: false, instructions: ["Colgado de barra con agarre prono","Elevar rodillas hacia el pecho — o piernas extendidas si hay fuerza","Bajar controlado — sin balancear el cuerpo","Core activado en todo el recorrido","Si hay soporte de codos (captain's chair), usarlo"] },
             { id: "estir_general_vie", section: "Vuelta a la calma", name: "Estiramiento general", emoji: "🧘", sets: "-", reps: "8-10 min", rest: "-", hasLoad: false, noImage: true, instructions: ["Cuádriceps de pie: agarrar tobillo llevando talón al glúteo, 30 seg c/pierna","Isquiotibiales sentado: pierna extendida, inclinar torso hacia adelante, 30 seg c/pierna","Gemelos contra la pared: pierna trasera extendida, talón en el suelo, 30 seg c/pierna","Glúteo (figura 4): acostado, cruzar tobillo sobre rodilla opuesta y llevar hacia el pecho, 30 seg c/lado","Pectoral en marco de puerta: brazo a 90°, rotar el cuerpo hacia el lado contrario, 30 seg c/lado","Tríceps: brazo arriba, codo flexionado detrás de la cabeza, empujar suave con la otra mano, 30 seg c/lado"] },
             { id: "caminata_cinta_vie", section: "Vuelta a la calma", name: "Caminata en cinta", emoji: "🚶", sets: "-", reps: "10 min", rest: "-", hasLoad: false, trackCinta: true, noImage: true, instructions: ["Inclinación 6, velocidad 6 como referencia — ajustar según sensación","10 minutos de caminata continua","Bajar progresivamente la frecuencia cardíaca","Cierre de la sesión"] }
         ]
@@ -811,7 +832,7 @@ const dayData = {
             { id: "fb_mov_hombros", section: "Calentamiento", name: "Movilidad hombros", emoji: "🔄", sets: "-", reps: "10 círculos c/u", rest: "-", hasLoad: false, noImage: true, instructions: ["De pie, brazos extendidos a los lados","10 círculos hacia adelante","10 círculos hacia atrás","Movimiento amplio y controlado"] },
             { id: "fb_extension", section: "Bloque 1 — Piernas", name: "Extensión de piernas", emoji: "🦿", sets: "3", reps: "12", rest: "90 seg", hasLoad: true, loadLabel: "Peso máquina (kg)", instructions: ["Sentado en máquina, espalda apoyada","Ajustar rodillo sobre empeine","Extender piernas completamente","Bajar controlado, sin golpear peso","Carga moderada — primera sesión de vuelta"] },
             { id: "fb_puente", section: "Bloque 1 — Piernas", name: "Puente de glúteos con carga", emoji: "🍑", sets: "3", reps: "15", rest: "60 seg", hasLoad: true, loadLabel: "Peso sobre cadera (kg)", instructions: ["Acostado boca arriba, rodillas flexionadas","Colocar mancuerna o barra sobre la cadera","Empujar talones contra el suelo y elevar cadera","Llegar a línea recta hombro-cadera-rodilla","Apretar glúteos arriba — 1 segundo de pausa"] },
-            { id: "fb_talones", section: "Bloque 1 — Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "12 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso adicional (kg)", trackReps: true, instructions: ["Apoyar solo la punta del pie en el borde de un step","Talón en el aire — bajar por debajo del nivel del step","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
+            { id: "fb_talones", section: "Bloque 1 — Piernas", name: "Elevación de talones unilateral", emoji: "👟", sets: "3", reps: "15 c/pierna", rest: "60 seg", hasLoad: true, loadLabel: "Peso adicional (kg)", instructions: ["Apoyar solo la punta del pie en el borde de un step","Talón en el aire — bajar por debajo del nivel del step","Subir hasta la punta máxima — 1 segundo arriba","Bajar controlado — 2-3 segundos","Apoyarse en la pared si es necesario"] },
             { id: "fb_remo", section: "Bloque 2 — Superior", name: "Remo en máquina / polea baja", emoji: "🚣", sets: "3", reps: "12", rest: "90 seg", hasLoad: true, loadLabel: "Peso (kg)", instructions: ["Sentado frente a la polea baja con agarre neutro","Espalda erguida, pecho fuera","Tirar hacia el abdomen llevando codos hacia atrás","Apretar escápulas en la posición final — 1 segundo","Extender brazos de forma controlada"] },
             { id: "fb_press_militar", section: "Bloque 2 — Superior", name: "Press militar sentado", emoji: "🏋️", sets: "3", reps: "10", rest: "90 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["Sentado con espalda apoyada","Mancuernas a altura de hombros","Empujar hacia arriba sin arquear espalda","Bajar controlado hasta hombros","Core activado durante todo el movimiento"] },
             { id: "fb_curl", section: "Bloque 2 — Superior", name: "Curl de bíceps con mancuernas", emoji: "💪", sets: "3", reps: "12", rest: "60 seg", hasLoad: true, loadLabel: "Mancuerna c/u (kg)", instructions: ["De pie, mancuernas a los costados con agarre supino","Flexionar codos llevando las mancuernas hacia los hombros","Codos pegados al torso","Bajar controlado","Alternar o hacer ambos juntos"] },
@@ -1141,12 +1162,13 @@ function getHistory(id) {
     try { return JSON.parse(localStorage.getItem(historyKey(id))) || []; } catch(e) { return []; }
 }
 
-function addRecord(id, carga, reps, velocidad) {
+function addRecord(id, carga, reps, velocidad, unidad) {
     const hist = getHistory(id);
     const fecha = new Date().toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' });
     const hora = new Date().toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
     const record = { carga, reps, fecha, hora };
     if (velocidad !== undefined) record.velocidad = velocidad;
+    if (unidad !== undefined) record.unidad = unidad;
 
     if (hist.length > 0 && hist[0].fecha === fecha) {
         // Mismo día: pisa el registro de hoy en vez de acumular uno por cada edición.
@@ -1173,6 +1195,9 @@ function enviarASheets(exerciseId, carga, reps, record, velocidad) {
     if (ex && ex.trackCinta) {
         cargaToSend = `Incl. ${carga} · Vel. ${velocidad} · ${reps} min`;
         repsToSend = '—';
+    } else if (ex && llevaUnidad(ex) && record.unidad === 'lb' && carga && carga !== '—') {
+        // kg se manda como número pelado (igual que el historial); lb lleva sufijo.
+        cargaToSend = `${carga} lb`;
     }
     fetch(SHEETS_URL, {
         method: 'POST', mode: 'no-cors',
@@ -1187,17 +1212,30 @@ function findExercise(exerciseId) {
 }
 
 // Si el ejercicio ya define las reps (ej. "12-15") y lleva peso, el registro
-// guarda solo la carga. Se siguen pidiendo en cinta (minutos) y en los
-// ejercicios de solo reps o con trackReps (fondos, step-down, talones).
+// guarda solo la carga. Solo se piden reps en la cinta (minutos); los ejercicios
+// sin peso (fondos, step-down, elevación de piernas) no tienen registro.
 function registraReps(ex) {
-    return !!(ex.trackCinta || ex.trackReps || !ex.hasLoad || ex.reps === '-');
+    return !!(ex.trackCinta || !ex.hasLoad || ex.reps === '-');
+}
+
+// Unidad de peso (kg o lb): solo aplica a ejercicios cuyo label de carga es un
+// peso, o sea los que dicen "(kg)". "Resistencia banda" no lleva unidad.
+function llevaUnidad(ex) { return !!(ex.hasLoad && /\(kg\)/i.test(ex.loadLabel || '')); }
+
+function labelCarga(ex) { return (ex.loadLabel || 'Carga').replace(/\s*\(kg\)/i, ''); }
+
+function unidadDe(r) { return r && r.unidad === 'lb' ? 'lb' : 'kg'; }
+
+function cargaConUnidad(ex, r) {
+    const carga = String(r.carga);
+    return llevaUnidad(ex) && carga && carga !== '—' ? `${carga} ${unidadDe(r)}` : carga;
 }
 
 function formatRecord(ex, r) {
     if (ex.trackCinta) return `Incl. ${r.carga} · Vel. ${r.velocidad} · ${r.reps} min`;
-    if (!registraReps(ex) && r.carga && r.carga !== '—') return `${r.carga}`;
+    if (!registraReps(ex) && r.carga && r.carga !== '—') return cargaConUnidad(ex, r);
     // Registros viejos de ejercicios que pasaron a llevar peso: carga vacía ('—').
-    return ex.hasLoad && r.carga && r.carga !== '—' ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
+    return ex.hasLoad && r.carga && r.carga !== '—' ? `${cargaConUnidad(ex, r)} · ${r.reps} reps` : `${r.reps} reps`;
 }
 
 // ── CONTADOR DE REPS (persistido por ejercicio y fecha) ──────────────────────────
@@ -1392,13 +1430,16 @@ function abrirModal(exerciseId) {
     } else if (ex.hasLoad) {
         cargaField.style.display = '';
         velocidadField.style.display = 'none';
-        document.getElementById('modalCargaLabel').textContent = ex.loadLabel || 'Carga';
+        document.getElementById('modalCargaLabel').textContent = labelCarga(ex);
         document.getElementById('modalRepsLabel').textContent = 'Reps';
     } else {
         cargaField.style.display = 'none';
         velocidadField.style.display = 'none';
         document.getElementById('modalRepsLabel').textContent = 'Reps';
     }
+
+    document.getElementById('modalUnidadRow').style.display = llevaUnidad(ex) ? 'flex' : 'none';
+    setUnidadModal(llevaUnidad(ex) ? (hist.length > 0 ? unidadDe(hist[0]) : unidadPreferida()) : 'kg', false);
 
     document.getElementById('modalSubtitle').textContent = hist.length > 0
         ? `Última vez: ${formatRecord(ex, hist[0])} — ${hist[0].fecha}`
@@ -1427,6 +1468,19 @@ function abrirModal(exerciseId) {
     setTimeout(() => document.getElementById(ex.hasLoad || ex.trackCinta ? 'modalCarga' : 'modalReps').focus(), 100);
 }
 
+let unidadModal = 'kg';
+
+function unidadPreferida() {
+    try { return localStorage.getItem('entreno_unidad_pref') === 'lb' ? 'lb' : 'kg'; } catch(e) { return 'kg'; }
+}
+
+function setUnidadModal(u, recordar = true) {
+    unidadModal = u === 'lb' ? 'lb' : 'kg';
+    document.getElementById('unidadKg').classList.toggle('active', unidadModal === 'kg');
+    document.getElementById('unidadLb').classList.toggle('active', unidadModal === 'lb');
+    if (recordar) { try { localStorage.setItem('entreno_unidad_pref', unidadModal); } catch(e) {} }
+}
+
 function cerrarModal() {
     document.getElementById('modalOverlay').classList.remove('open');
     activeExerciseId = null;
@@ -1452,9 +1506,14 @@ function guardarDesdeModal() {
     }
 
     const carga = ex.hasLoad ? document.getElementById('modalCarga').value : '—';
-    const reps = registraReps(ex) ? document.getElementById('modalReps').value : '';
+    // Si el ejercicio ya no pide reps pero hoy hay un registro con reps, se conservan
+    // al editarlo, para no pisar datos que ya existían.
+    const previo = getHistory(id)[0];
+    const hoy = new Date().toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    const repsPrevias = previo && previo.fecha === hoy && previo.reps !== '—' ? previo.reps : '';
+    const reps = registraReps(ex) ? document.getElementById('modalReps').value : repsPrevias;
     if ((!carga || carga === '—') && !reps) { cerrarModal(); return; }
-    const record = addRecord(id, carga || '—', reps || '—');
+    const record = addRecord(id, carga || '—', reps || '—', undefined, llevaUnidad(ex) ? unidadModal : undefined);
     enviarASheets(id, carga || '—', reps || '—', record);
     marcarEntrenado(currentDay, todayStr());
     renderProgress();
@@ -1489,7 +1548,7 @@ function renderCardMeta(exerciseId) {
     const hist = getHistory(exerciseId);
     const last = hist[0];
     const planStr = ex.sets !== '-' ? `${ex.sets} × ${ex.reps}` : ex.reps;
-    el.innerHTML = (ex.hasLoad || ex.trackReps || ex.trackCinta) && last
+    el.innerHTML = (ex.hasLoad || ex.trackCinta) && last
         ? `${planStr} <span class="last-load">· ${formatRecord(ex, last)}</span>`
         : planStr;
 }
@@ -1549,7 +1608,7 @@ function renderList(day) {
 
     data.exercises.forEach(ex => {
         num++;
-        const hasRegistro = ex.hasLoad || ex.trackReps || ex.trackCinta;
+        const hasRegistro = ex.hasLoad || ex.trackCinta;
         const hist = hasRegistro ? getHistory(ex.id) : [];
         const last = hist[0];
         const planStr = ex.sets !== '-' ? `${ex.sets} × ${ex.reps}` : ex.reps;
@@ -1746,13 +1805,19 @@ async function cargarDesdeSheets() {
             const id = resolverIdSheet(dia, nombre);
             if (!id) return;
 
-            let velocidad;
+            let velocidad, unidad;
             const ex = idToExercise[id];
             if (ex && ex.trackCinta) {
                 // La carga viaja al Sheet como string compuesto "Incl. X · Vel. Y · Z min"
                 // para no tener que agregar columnas nuevas. Acá se deshace ese empaquetado.
                 const m = String(carga).match(/Incl\.\s*([^\s·]+)\s*·\s*Vel\.\s*([^\s·]+)\s*·\s*([^\s]+)\s*min/i);
                 if (m) { carga = m[1]; velocidad = m[2]; reps = m[3]; }
+            }
+
+            if (ex && llevaUnidad(ex)) {
+                // Las cargas en lb viajan como "45 lb"; se separa número y unidad.
+                const mLb = String(carga).match(/^\s*([\d.,]+)\s*lb\s*$/i);
+                if (mLb) { carga = mLb[1]; unidad = 'lb'; }
             }
 
             if (!histMap[id]) histMap[id] = [];
@@ -1763,6 +1828,7 @@ async function cargarDesdeSheets() {
                 hora: String(row['Hora'] || '')
             };
             if (velocidad !== undefined) record.velocidad = velocidad;
+            if (unidad !== undefined) record.unidad = unidad;
             histMap[id].push(record);
         });
 
