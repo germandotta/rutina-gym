@@ -308,7 +308,10 @@
             padding: 8px 12px;
         }
 
-        .contador-label { font-size: 11px; color: #555; flex: 1; }
+        .contador-label { font-size: 11px; color: #555; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .contador-serie { font-size: 13px; font-weight: 700; color: #10b981; }
+        .contador-serie.completo { color: #34d399; }
+        .btn-contador:disabled { opacity: 0.35; cursor: default; }
 
         .contador-valor {
             font-size: 22px;
@@ -681,7 +684,7 @@
                 <label id="modalVelocidadLabel">Velocidad</label>
                 <input type="text" id="modalVelocidad" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*">
             </div>
-            <div class="modal-field">
+            <div class="modal-field" id="modalRepsField">
                 <label id="modalRepsLabel">Reps</label>
                 <input type="number" id="modalReps" placeholder="—" inputmode="numeric">
             </div>
@@ -740,7 +743,7 @@
 <script>
 // ── DATOS ─────────────────────────────────────────────────────────────────────
 const protocoloRodilla = prefix => [
-    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
+    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorMeta: { reps: 8, series: 2 }, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
     { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, restTimer: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
 
@@ -1183,8 +1186,16 @@ function findExercise(exerciseId) {
     return dayData[currentDay].exercises.find(e => e.id === exerciseId);
 }
 
+// Si el ejercicio ya define las reps (ej. "12-15") y lleva peso, el registro
+// guarda solo la carga. Se siguen pidiendo en cinta (minutos) y en los
+// ejercicios de solo reps o con trackReps (fondos, step-down, talones).
+function registraReps(ex) {
+    return !!(ex.trackCinta || ex.trackReps || !ex.hasLoad || ex.reps === '-');
+}
+
 function formatRecord(ex, r) {
     if (ex.trackCinta) return `Incl. ${r.carga} · Vel. ${r.velocidad} · ${r.reps} min`;
+    if (!registraReps(ex) && r.carga && r.carga !== '—') return `${r.carga}`;
     // Registros viejos de ejercicios que pasaron a llevar peso: carga vacía ('—').
     return ex.hasLoad && r.carga && r.carga !== '—' ? `${r.carga} · ${r.reps} reps` : `${r.reps} reps`;
 }
@@ -1196,15 +1207,63 @@ function getContador(id) {
     try { return Math.max(0, parseInt(localStorage.getItem(contadorKey(id)), 10) || 0); } catch(e) { return 0; }
 }
 
-function setContador(id, valor) {
-    try { localStorage.setItem(contadorKey(id), String(valor)); } catch(e) {}
-    const el = document.getElementById(`contadorValor_${id}`);
-    if (el) el.textContent = valor;
+function serieKey(id) { return `entreno_series_${id}_${todayStr()}`; }
+
+function getSeriesHechas(id) {
+    try { return Math.max(0, parseInt(localStorage.getItem(serieKey(id)), 10) || 0); } catch(e) { return 0; }
 }
 
-function ajustarContador(id, delta) { setContador(id, Math.max(0, getContador(id) + delta)); }
+function setContador(id, valor, seriesHechas) {
+    try {
+        localStorage.setItem(contadorKey(id), String(valor));
+        if (seriesHechas !== undefined) localStorage.setItem(serieKey(id), String(seriesHechas));
+    } catch(e) {}
+    const el = document.getElementById(`contadorValor_${id}`);
+    if (el) el.textContent = valor;
+    renderContadorSerie(id);
+}
 
-function resetearContador(id) { setContador(id, 0); }
+// Ejercicios con contadorMeta: al llegar a las reps de la meta se completa una
+// serie y el contador vuelve a 0 para la siguiente. Al completar la última queda
+// en la meta y no deja seguir sumando.
+function renderContadorSerie(id) {
+    const ex = findExercise(id);
+    const el = document.getElementById(`contadorSerie_${id}`);
+    if (!ex || !ex.contadorMeta || !el) return;
+    const { series } = ex.contadorMeta;
+    const hechas = getSeriesHechas(id);
+    const completo = hechas >= series;
+    el.textContent = completo ? `✓ ${series} series completas` : `Serie ${hechas + 1} de ${series}`;
+    el.classList.toggle('completo', completo);
+    const mas = document.getElementById(`contadorMas_${id}`);
+    if (mas) mas.disabled = completo;
+}
+
+function ajustarContador(id, delta) {
+    const ex = findExercise(id);
+    const meta = ex && ex.contadorMeta;
+    let valor = getContador(id) + delta;
+    if (!meta) { setContador(id, Math.max(0, valor)); return; }
+
+    let hechas = getSeriesHechas(id);
+    if (delta > 0) {
+        if (hechas >= meta.series) return;
+        if (valor >= meta.reps) {
+            hechas++;
+            valor = hechas >= meta.series ? meta.reps : 0;
+        }
+    } else if (valor < 0) {
+        // Restar desde 0: vuelve a la serie anterior, una rep antes de completarla.
+        if (hechas === 0) valor = 0;
+        else { hechas--; valor = meta.reps - 1; }
+    } else if (hechas >= meta.series) {
+        // Estaba todo completo: restar reabre la última serie.
+        hechas--; valor = meta.reps - 1;
+    }
+    setContador(id, valor, hechas);
+}
+
+function resetearContador(id) { setContador(id, 0, 0); }
 
 // ── TIMER DE DESCANSO ──────────────────────────────────────────────────────────
 // Cuenta contra un timestamp de fin (no por ticks), así sigue exacto aunque el
@@ -1322,6 +1381,7 @@ function abrirModal(exerciseId) {
     const cargaField = document.getElementById('modalCargaField');
     const velocidadField = document.getElementById('modalVelocidadField');
     document.getElementById('modalTitle').textContent = ex.name;
+    document.getElementById('modalRepsField').style.display = registraReps(ex) ? '' : 'none';
 
     if (ex.trackCinta) {
         cargaField.style.display = '';
@@ -1392,7 +1452,7 @@ function guardarDesdeModal() {
     }
 
     const carga = ex.hasLoad ? document.getElementById('modalCarga').value : '—';
-    const reps = document.getElementById('modalReps').value;
+    const reps = registraReps(ex) ? document.getElementById('modalReps').value : '';
     if ((!carga || carga === '—') && !reps) { cerrarModal(); return; }
     const record = addRecord(id, carga || '—', reps || '—');
     enviarASheets(id, carga || '—', reps || '—', record);
@@ -1516,11 +1576,11 @@ function renderList(day) {
         // Contador de reps (solo ejercicios con contadorReps)
         const contadorHTML = ex.contadorReps ? `
             <div class="contador-row">
-                <span class="contador-label">Contador de reps</span>
+                <span class="contador-label">Contador de reps${ex.contadorMeta ? `<span class="contador-serie" id="contadorSerie_${ex.id}"></span>` : ''}</span>
                 <button class="btn-contador btn-contador-reset" onclick="resetearContador('${ex.id}')" aria-label="Resetear contador">↺</button>
                 <button class="btn-contador" onclick="ajustarContador('${ex.id}', -1)" aria-label="Restar una rep">−</button>
                 <span class="contador-valor" id="contadorValor_${ex.id}">${getContador(ex.id)}</span>
-                <button class="btn-contador btn-contador-mas" onclick="ajustarContador('${ex.id}', 1)" aria-label="Sumar una rep">+</button>
+                <button class="btn-contador btn-contador-mas" id="contadorMas_${ex.id}" onclick="ajustarContador('${ex.id}', 1)" aria-label="Sumar una rep">+</button>
             </div>` : '';
 
         // Specs
@@ -1559,6 +1619,7 @@ function renderList(day) {
     });
 
     list.innerHTML = html;
+    data.exercises.forEach(ex => { if (ex.contadorMeta) renderContadorSerie(ex.id); });
 }
 
 // ── SWITCH DAY ─────────────────────────────────────────────────────────────────
