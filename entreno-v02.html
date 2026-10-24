@@ -1040,10 +1040,14 @@ function getPlanConfig() {
     return null;
 }
 
+// Plan de Germán. Es el valor de respaldo si el localStorage está vacío (reinstalación,
+// datos del sitio borrados); lo guardado desde ⚙️ tiene prioridad.
+const PLAN_POR_DEFECTO = { startDate: '2026-08-24', weeks: 12, weeklyGoal: 3 };
+
 function ensurePlanConfig() {
     let cfg = getPlanConfig();
     if (!cfg || !cfg.startDate || !cfg.weeks) {
-        cfg = { startDate: todayStr(), weeks: 12, weeklyGoal: 3 };
+        cfg = { ...PLAN_POR_DEFECTO };
         try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
     }
     return cfg;
@@ -1058,6 +1062,59 @@ function savePlanConfig(startDate, weeks, weeklyGoal) {
     const cfg = { startDate, weeks, weeklyGoal };
     try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
     return cfg;
+}
+
+// ── PLAN EN GOOGLE SHEETS ───────────────────────────────────────────────────────
+// El plan se guarda como una fila más del Sheet, sin cambiar el Apps Script: el
+// doPost actual pisa la fila si coinciden día + ejercicio + fecha, así que con
+// una clave fija ("__plan__" / "config" / "config") siempre actualiza la misma
+// fila. Las lecturas del historial ignoran el día "__plan__" (no es un día real).
+// La carga lleva el JSON del plan. El Sheet manda al abrir; si hay un cambio local
+// que todavía no se confirmó en el Sheet (sin conexión), manda el local.
+const PLAN_SHEET = { dia: '__plan__', ejercicio: 'config', fecha: 'config' };
+function planPendienteKey() { return 'entreno_plan_pendiente'; }
+
+function planValido(c) {
+    return !!(c && /^\d{4}-\d{2}-\d{2}$/.test(c.startDate) && parseInt(c.weeks, 10) > 0 && parseInt(c.weeklyGoal, 10) > 0);
+}
+
+function mismoPlan(a, b) {
+    return !!(a && b && a.startDate === b.startDate && +a.weeks === +b.weeks && +a.weeklyGoal === +b.weeklyGoal);
+}
+
+function setPlanPendiente(val) {
+    try { if (val) localStorage.setItem(planPendienteKey(), '1'); else localStorage.removeItem(planPendienteKey()); } catch(e) {}
+}
+
+function hayPlanPendiente() {
+    try { return localStorage.getItem(planPendienteKey()) === '1'; } catch(e) { return false; }
+}
+
+function enviarPlanASheets(cfg) {
+    fetch(SHEETS_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fecha: PLAN_SHEET.fecha, hora: '', dia: PLAN_SHEET.dia, ejercicio: PLAN_SHEET.ejercicio,
+            carga: JSON.stringify({ startDate: cfg.startDate, weeks: +cfg.weeks, weeklyGoal: +cfg.weeklyGoal }), reps: '—', completado: '' })
+    }).catch(() => {});
+}
+
+// Se llama con las filas ya descargadas del Sheet (GET exitoso).
+function sincronizarPlan(rows) {
+    let remoto = null;
+    rows.forEach(row => {
+        if (row['Día'] !== PLAN_SHEET.dia || row['Ejercicio'] !== PLAN_SHEET.ejercicio) return;
+        try { const c = JSON.parse(row['Carga']); if (planValido(c)) remoto = c; } catch(e) {}
+    });
+
+    const local = ensurePlanConfig();
+    if (!remoto) { enviarPlanASheets(local); return; }
+    if (hayPlanPendiente()) {
+        if (mismoPlan(remoto, local)) setPlanPendiente(false);
+        else enviarPlanASheets(local);
+        return;
+    }
+    if (!mismoPlan(remoto, local)) savePlanConfig(remoto.startDate, +remoto.weeks, +remoto.weeklyGoal);
 }
 
 function currentPlanWeek() {
@@ -1089,7 +1146,9 @@ function guardarSettings() {
     const weeks = parseInt(document.getElementById('settingsWeeks').value, 10) || 12;
     const weeklyGoal = parseInt(document.getElementById('settingsGoal').value, 10) || 3;
     if (!startDate) { cerrarSettings(); return; }
-    savePlanConfig(startDate, weeks, weeklyGoal);
+    const cfg = savePlanConfig(startDate, weeks, weeklyGoal);
+    setPlanPendiente(true);
+    enviarPlanASheets(cfg);
     cerrarSettings();
     renderProgress();
 }
@@ -1839,6 +1898,7 @@ async function cargarDesdeSheets() {
         });
 
         backfillProgresoDesdeSheet(json.data);
+        sincronizarPlan(json.data);
     } catch(e) {
         // Si falla, usa localStorage existente
     }
