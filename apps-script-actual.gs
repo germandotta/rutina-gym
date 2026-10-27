@@ -13,17 +13,28 @@
 // El plan (inicio, semanas, sesiones por semana) vive en la pestaña "Plan", que se
 // crea sola; se edita a mano en B2:B4. La app lo envía/recibe con el día "__plan__",
 // que el script desvía a esa pestaña sin escribirlo en la hoja de registros.
+//
+// Las series y reps de cada ejercicio (las que cambia el fisio desde "Configurar" en la
+// app) viven en la pestaña "Ejercicios", una fila por ejercicio: Id | Ejercicio | Sesión |
+// Series | Reps. Se pueden editar a mano en Series y Reps (no cambiar el Id). La app las
+// envía con el día "__ejercicios__". doGet devuelve además "version": 2; la app solo
+// manda configuración de ejercicios si ve esa versión.
 
+const VERSION = 2;
 const HOJA_PLAN = 'Plan';
+const HOJA_EJERCICIOS = 'Ejercicios';
+const HOJAS_AUXILIARES = [HOJA_PLAN, HOJA_EJERCICIOS];
 const DIA_PLAN = '__plan__';
+const DIA_EJERCICIOS = '__ejercicios__';
 
-// Hoja de registros: la activa de siempre, salvo que "Plan" haya quedado activa
-// (por ejemplo al crearse sola); en ese caso, la primera hoja que no sea Plan.
+// Hoja de registros: la activa de siempre, salvo que una pestaña auxiliar ("Plan" o
+// "Ejercicios") haya quedado activa (por ejemplo al crearse sola); en ese caso, la
+// primera hoja que no sea auxiliar.
 function hojaRegistros() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const activa = ss.getActiveSheet();
-  if (activa.getName() !== HOJA_PLAN) return activa;
-  return ss.getSheets().find(h => h.getName() !== HOJA_PLAN);
+  if (!HOJAS_AUXILIARES.includes(activa.getName())) return activa;
+  return ss.getSheets().find(h => !HOJAS_AUXILIARES.includes(h.getName()));
 }
 
 function hojaPlan() {
@@ -37,6 +48,44 @@ function hojaPlan() {
     ss.setActiveSheet(previa);
   }
   return h;
+}
+
+function hojaEjercicios() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let h = ss.getSheetByName(HOJA_EJERCICIOS);
+  if (!h) {
+    const previa = ss.getActiveSheet();
+    h = ss.insertSheet(HOJA_EJERCICIOS);
+    h.getRange('A1:E1').setValues([['Id', 'Ejercicio', 'Sesión', 'Series', 'Reps']]);
+    ss.setActiveSheet(previa);
+  }
+  return h;
+}
+
+// Texto de una celda; las fechas (Sheets convierte "12-15" en fecha si la celda no es
+// de texto) no se pueden recuperar, se descartan.
+function textoCelda(v) {
+  if (Object.prototype.toString.call(v) === '[object Date]') return '';
+  return String(v == null ? '' : v).trim();
+}
+
+function leerEjercicios() {
+  const h = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HOJA_EJERCICIOS);
+  if (!h) return [];
+  return h.getDataRange().getValues().slice(1)
+    .map(r => ({ id: textoCelda(r[0]), sets: textoCelda(r[3]), reps: textoCelda(r[4]) }))
+    .filter(e => e.id && e.sets && e.reps);
+}
+
+// Una fila por ejercicio, buscada por Id (columna A): actualiza si existe, si no agrega.
+function guardarEjercicio(id, cfg) {
+  const h = hojaEjercicios();
+  h.getRange('D:E').setNumberFormat('@'); // texto, para que "12-15" no se convierta en fecha
+  const ids = h.getRange(1, 1, Math.max(h.getLastRow(), 1), 1).getValues().map(r => textoCelda(r[0]));
+  let fila = ids.indexOf(id) + 1;
+  if (fila < 2) fila = Math.max(h.getLastRow(), 1) + 1;
+  h.getRange(fila, 1, 1, 5).setNumberFormat('@')
+    .setValues([[id, String(cfg.nombre || ''), String(cfg.sesion || ''), String(cfg.sets), String(cfg.reps)]]);
 }
 
 function fechaISO(valor) {
@@ -83,7 +132,11 @@ function doGet(e) {
   if (plan) {
     data.push({ Fecha: 'config', Hora: '', 'Día': DIA_PLAN, Ejercicio: 'config', Carga: JSON.stringify(plan), Reps: '—', Completado: '' });
   }
-  return respuesta({ ok: true, data });
+  // Series y reps por ejercicio, una fila por Id.
+  leerEjercicios().forEach(e => {
+    data.push({ Fecha: 'config', Hora: '', 'Día': DIA_EJERCICIOS, Ejercicio: e.id, Carga: JSON.stringify({ sets: e.sets, reps: e.reps }), Reps: '—', Completado: '' });
+  });
+  return respuesta({ ok: true, version: VERSION, data });
 }
 
 // La columna Fecha puede volver como texto "dd/mm/aa" o, si Sheets la
@@ -110,6 +163,21 @@ function doPost(e) {
       return respuesta({ ok: true, plan: true });
     } catch (err) {
       return respuesta({ ok: false, error: 'plan invalido' });
+    }
+  }
+
+  // Series y reps de un ejercicio: a la pestaña "Ejercicios", nunca al log.
+  if (data.dia === DIA_EJERCICIOS) {
+    try {
+      const cfg = JSON.parse(data.carga);
+      const id = String(data.ejercicio || '').trim();
+      if (!id || !String(cfg.sets).trim() || !String(cfg.reps).trim() || String(cfg.sets).length > 6 || String(cfg.reps).length > 40) {
+        return respuesta({ ok: false, error: 'ejercicio invalido' });
+      }
+      guardarEjercicio(id, cfg);
+      return respuesta({ ok: true, ejercicio: true });
+    } catch (err) {
+      return respuesta({ ok: false, error: 'ejercicio invalido' });
     }
   }
 
