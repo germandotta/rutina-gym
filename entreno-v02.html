@@ -354,6 +354,16 @@
         }
         .unidad-toggle button.active { background: #10b981; color: #fff; }
 
+        .config-titulo {
+            font-size: 10px;
+            font-weight: 700;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .modal-field.config-series { flex: 0 0 90px; }
+
         .btn-contador-reset {
             width: 36px;
             height: 36px;
@@ -694,7 +704,7 @@
             <div class="modal-field" id="modalCargaField">
                 <label id="modalCargaLabel">Carga</label>
                 <div class="input-unidad">
-                    <input type="text" id="modalCarga" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*">
+                    <input type="text" id="modalCarga" placeholder="—" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" oninput="cargaTocada = true">
                     <div class="unidad-toggle" id="modalUnidadRow" style="display:none">
                         <button type="button" id="unidadKg" onclick="setUnidadModal('kg')">kg</button>
                         <button type="button" id="unidadLb" onclick="setUnidadModal('lb')">lb</button>
@@ -707,7 +717,20 @@
             </div>
             <div class="modal-field" id="modalRepsField">
                 <label id="modalRepsLabel">Reps</label>
-                <input type="number" id="modalReps" placeholder="—" inputmode="numeric">
+                <input type="number" id="modalReps" placeholder="—" inputmode="numeric" oninput="cargaTocada = true">
+            </div>
+        </div>
+        <div id="modalConfigRow" style="display:none">
+            <div class="config-titulo">Plan del ejercicio</div>
+            <div class="modal-inputs">
+                <div class="modal-field config-series">
+                    <label for="modalSeries">Series</label>
+                    <input type="text" id="modalSeries" inputmode="numeric" maxlength="3" placeholder="—">
+                </div>
+                <div class="modal-field">
+                    <label for="modalPlanReps">Repeticiones</label>
+                    <input type="text" id="modalPlanReps" maxlength="40" placeholder="—">
+                </div>
             </div>
         </div>
         <div id="modalHistorico"></div>
@@ -764,7 +787,7 @@
 <script>
 // ── DATOS ─────────────────────────────────────────────────────────────────────
 const protocoloRodilla = prefix => [
-    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorMeta: { reps: 8, series: 2 }, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
+    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorSeries: true, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
     { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, restTimer: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
 
@@ -1064,6 +1087,102 @@ function savePlanConfig(startDate, weeks, weeklyGoal) {
     return cfg;
 }
 
+// ── SERIES Y REPS POR EJERCICIO (editables, sincronizadas con el Sheet) ─────────
+// El fisio puede cambiar series y reps. Lo editado pisa el valor del código y se
+// guarda en localStorage y en la pestaña "Ejercicios" del Sheet (una fila por id),
+// así sobrevive si se borra el almacenamiento. Mismo esquema que el plan: el Sheet
+// manda al abrir, salvo los cambios locales todavía sin confirmar (pendientes).
+// Solo se envía si el script es versión 2+ (el viejo las escribiría en el log).
+const EJ_SHEET = { dia: '__ejercicios__', fecha: 'config' };
+let scriptVersion = 1;
+function ejConfigKey() { return 'entreno_ej_config'; }
+function ejPendienteKey() { return 'entreno_ej_pendiente'; }
+
+function leerStorageJSON(key, porDefecto) {
+    try { const v = JSON.parse(localStorage.getItem(key)); return v && typeof v === 'object' ? v : porDefecto; } catch(e) { return porDefecto; }
+}
+function getEjConfig() { const c = leerStorageJSON(ejConfigKey(), {}); return Array.isArray(c) ? {} : c; }
+function getEjPendientes() { const a = leerStorageJSON(ejPendienteKey(), []); return Array.isArray(a) ? a : []; }
+function setStorageJSON(key, valor) { try { localStorage.setItem(key, JSON.stringify(valor)); } catch(e) {} }
+
+function configEjValida(c) {
+    if (!c) return false;
+    const sets = String(c.sets == null ? '' : c.sets).trim();
+    const reps = String(c.reps == null ? '' : c.reps).trim();
+    return sets.length > 0 && sets.length <= 6 && reps.length > 0 && reps.length <= 40;
+}
+function limpiarConfigEj(c) { return { sets: String(c.sets).trim(), reps: String(c.reps).trim() }; }
+function mismaConfigEj(a, b) { return !!(a && b && String(a.sets) === String(b.sets) && String(a.reps) === String(b.reps)); }
+
+// Pisa series/reps de los ejercicios con lo guardado. Se llama al iniciar y tras sincronizar.
+function aplicarConfigEjercicios() {
+    const cfg = getEjConfig();
+    Object.values(dayData).forEach(d => d.exercises.forEach(ex => {
+        if (configEjValida(cfg[ex.id])) { ex.sets = String(cfg[ex.id].sets).trim(); ex.reps = String(cfg[ex.id].reps).trim(); }
+    }));
+}
+
+function guardarConfigEjercicio(ex, sets, reps) {
+    const cfg = getEjConfig();
+    cfg[ex.id] = { sets, reps };
+    setStorageJSON(ejConfigKey(), cfg);
+    ex.sets = sets;
+    ex.reps = reps;
+    const pend = new Set(getEjPendientes());
+    pend.add(ex.id);
+    setStorageJSON(ejPendienteKey(), [...pend]);
+    enviarConfigEjercicio(ex.id);
+}
+
+function sesionDeEjercicio(id) {
+    const dia = Object.keys(dayData).find(d => dayData[d].exercises.some(e => e.id === id));
+    return dia || '';
+}
+
+function enviarConfigEjercicio(id) {
+    const ex = idToExercise[id];
+    const c = getEjConfig()[id];
+    if (scriptVersion < 2 || !ex || !configEjValida(c)) return;
+    fetch(SHEETS_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fecha: EJ_SHEET.fecha, hora: '', dia: EJ_SHEET.dia, ejercicio: id,
+            carga: JSON.stringify({ nombre: ex.name, sesion: sesionDeEjercicio(id), sets: String(c.sets), reps: String(c.reps) }),
+            reps: '—', completado: '' })
+    }).catch(() => {});
+}
+
+// Se llama con las filas del Sheet ya descargadas (GET exitoso).
+function sincronizarEjercicios(rows) {
+    if (scriptVersion < 2) return;
+    const remoto = {};
+    rows.forEach(row => {
+        if (row['Día'] !== EJ_SHEET.dia) return;
+        try { const c = JSON.parse(row['Carga']); if (configEjValida(c)) remoto[String(row['Ejercicio'])] = limpiarConfigEj(c); } catch(e) {}
+    });
+    const local = getEjConfig();
+    const pend = new Set(getEjPendientes());
+    let cambio = false;
+
+    Object.entries(remoto).forEach(([id, r]) => {
+        if (!idToExercise[id]) return;
+        if (pend.has(id)) {
+            if (mismaConfigEj(r, local[id])) pend.delete(id); else enviarConfigEjercicio(id);
+        } else if (!mismaConfigEj(r, local[id])) {
+            local[id] = r;
+            cambio = true;
+        }
+    });
+    // Lo que está guardado en el celu pero no en el Sheet se sube.
+    Object.keys(local).forEach(id => {
+        if (!remoto[id] && idToExercise[id] && configEjValida(local[id])) { pend.add(id); enviarConfigEjercicio(id); }
+    });
+
+    if (cambio) setStorageJSON(ejConfigKey(), local);
+    setStorageJSON(ejPendienteKey(), [...pend]);
+    if (cambio) aplicarConfigEjercicios();
+}
+
 // ── PLAN EN GOOGLE SHEETS ───────────────────────────────────────────────────────
 // El plan se guarda como una fila más del Sheet, sin cambiar el Apps Script: el
 // doPost actual pisa la fila si coinciden día + ejercicio + fecha, así que con
@@ -1320,14 +1439,22 @@ function setContador(id, valor, seriesHechas) {
     renderContadorSerie(id);
 }
 
-// Ejercicios con contadorMeta: al llegar a las reps de la meta se completa una
+// Ejercicios con contadorSeries: al llegar a las reps del plan se completa una
 // serie y el contador vuelve a 0 para la siguiente. Al completar la última queda
-// en la meta y no deja seguir sumando.
+// en la meta y no deja seguir sumando. Reps y series salen del plan del ejercicio
+// (editable desde "Configurar"): la primera cifra de las reps ("8 c/pierna" -> 8).
+function metaContador(ex) {
+    if (!ex || !ex.contadorSeries) return null;
+    const reps = parseInt((String(ex.reps).match(/\d+/) || [])[0], 10);
+    const series = parseInt(ex.sets, 10);
+    return reps > 0 && series > 0 ? { reps, series } : null;
+}
 function renderContadorSerie(id) {
     const ex = findExercise(id);
     const el = document.getElementById(`contadorSerie_${id}`);
-    if (!ex || !ex.contadorMeta || !el) return;
-    const { series } = ex.contadorMeta;
+    const meta = metaContador(ex);
+    if (!meta || !el) return;
+    const { series } = meta;
     const hechas = getSeriesHechas(id);
     const completo = hechas >= series;
     el.textContent = completo ? `✓ ${series} series completas` : `Serie ${hechas + 1} de ${series}`;
@@ -1338,7 +1465,7 @@ function renderContadorSerie(id) {
 
 function ajustarContador(id, delta) {
     const ex = findExercise(id);
-    const meta = ex && ex.contadorMeta;
+    const meta = metaContador(ex);
     let valor = getContador(id) + delta;
     if (!meta) { setContador(id, Math.max(0, valor)); return; }
 
@@ -1523,11 +1650,20 @@ function abrirModal(exerciseId) {
         if (ex.contadorReps && getContador(exerciseId) > 0) document.getElementById('modalReps').value = getContador(exerciseId);
     }
 
+    cargaTocada = false;
+    const confRow = document.getElementById('modalConfigRow');
+    confRow.style.display = llevaConfig(ex) ? '' : 'none';
+    if (llevaConfig(ex)) {
+        document.getElementById('modalSeries').value = ex.sets;
+        document.getElementById('modalPlanReps').value = ex.reps;
+    }
+
     document.getElementById('modalOverlay').classList.add('open');
     setTimeout(() => document.getElementById(ex.hasLoad || ex.trackCinta ? 'modalCarga' : 'modalReps').focus(), 100);
 }
 
 let unidadModal = 'kg';
+let cargaTocada = false; // si en el modal se tocó peso/unidad/reps (para no registrar de más al solo configurar)
 
 function unidadPreferida() {
     try { return localStorage.getItem('entreno_unidad_pref') === 'lb' ? 'lb' : 'kg'; } catch(e) { return 'kg'; }
@@ -1537,7 +1673,7 @@ function setUnidadModal(u, recordar = true) {
     unidadModal = u === 'lb' ? 'lb' : 'kg';
     document.getElementById('unidadKg').classList.toggle('active', unidadModal === 'kg');
     document.getElementById('unidadLb').classList.toggle('active', unidadModal === 'lb');
-    if (recordar) { try { localStorage.setItem('entreno_unidad_pref', unidadModal); } catch(e) {} }
+    if (recordar) { cargaTocada = true; try { localStorage.setItem('entreno_unidad_pref', unidadModal); } catch(e) {} }
 }
 
 function cerrarModal() {
@@ -1564,6 +1700,19 @@ function guardarDesdeModal() {
         return;
     }
 
+    // Plan del ejercicio (series y reps): se guarda aparte del registro de peso.
+    let cambioConfig = false;
+    if (llevaConfig(ex)) {
+        const sets = document.getElementById('modalSeries').value.trim();
+        const planReps = document.getElementById('modalPlanReps').value.trim();
+        if ((sets && sets !== ex.sets) || (planReps && planReps !== ex.reps)) {
+            guardarConfigEjercicio(ex, sets || ex.sets, planReps || ex.reps);
+            cambioConfig = true;
+        }
+    }
+    // Solo configuraron series/reps y no tocaron el peso: no se crea un registro de hoy.
+    if (cambioConfig && !cargaTocada) { cerrarModal(); renderList(currentDay); return; }
+
     const carga = ex.hasLoad ? document.getElementById('modalCarga').value : '—';
     // Si el ejercicio ya no pide reps pero hoy hay un registro con reps, se conservan
     // al editarlo, para no pisar datos que ya existían.
@@ -1571,17 +1720,26 @@ function guardarDesdeModal() {
     const hoy = new Date().toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: '2-digit' });
     const repsPrevias = previo && previo.fecha === hoy && previo.reps !== '—' ? previo.reps : '';
     const reps = registraReps(ex) ? document.getElementById('modalReps').value : repsPrevias;
-    if ((!carga || carga === '—') && !reps) { cerrarModal(); return; }
+    if ((!carga || carga === '—') && !reps) { cerrarModal(); if (cambioConfig) renderList(currentDay); return; }
     const record = addRecord(id, carga || '—', reps || '—', undefined, llevaUnidad(ex) ? unidadModal : undefined);
     enviarASheets(id, carga || '—', reps || '—', record);
     marcarEntrenado(currentDay, todayStr());
     renderProgress();
     cerrarModal();
+    if (cambioConfig) renderList(currentDay);
     renderRegistroResumen(id);
     renderCardMeta(id);
 }
 
 // ── RENDER REGISTRO ────────────────────────────────────────────────────────────
+// Con peso (y sin ser cinta) el modal también edita series y reps del plan, así
+// que el botón pasa a llamarse "Configurar".
+function llevaConfig(ex) { return !!(ex.hasLoad && !ex.trackCinta && ex.sets !== '-'); }
+
+function etiquetaBtnRegistro(ex, hayRegistro) {
+    return llevaConfig(ex) ? 'Configurar' : (hayRegistro ? 'Editar' : '+ Registrar');
+}
+
 function renderRegistroResumen(exerciseId) {
     const el = document.getElementById(`registro_${exerciseId}`);
     if (!el) return;
@@ -1589,8 +1747,8 @@ function renderRegistroResumen(exerciseId) {
     const hist = getHistory(exerciseId);
     const last = hist[0];
     el.innerHTML = last
-        ? `<span class="registro-label">Última vez</span><span class="registro-valor">${formatRecord(ex, last)}</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${exerciseId}')">Editar</button><button class="btn-del" onclick="borrarRegistro('${exerciseId}')">✕</button></div>`
-        : `<span class="registro-label" style="color:#444">Sin registros</span><button class="btn-reg" onclick="abrirModal('${exerciseId}')">+ Registrar</button>`;
+        ? `<span class="registro-label">Última vez</span><span class="registro-valor">${formatRecord(ex, last)}</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${exerciseId}')">${etiquetaBtnRegistro(ex, true)}</button><button class="btn-del" onclick="borrarRegistro('${exerciseId}')">✕</button></div>`
+        : `<span class="registro-label" style="color:#444">Sin registros</span><button class="btn-reg" onclick="abrirModal('${exerciseId}')">${etiquetaBtnRegistro(ex, false)}</button>`;
 }
 
 function borrarRegistro(exerciseId) {
@@ -1686,15 +1844,15 @@ function renderList(day) {
         const registroHTML = hasRegistro ? `
             <div class="registro-row" id="registro_${ex.id}">
                 ${last
-                    ? `<span class="registro-label">Última vez</span><span class="registro-valor">${formatRecord(ex, last)}</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${ex.id}')">Editar</button><button class="btn-del" onclick="borrarRegistro('${ex.id}')">✕</button></div>`
-                    : `<span class="registro-label" style="color:#444">Sin registros</span><button class="btn-reg" onclick="abrirModal('${ex.id}')">+ Registrar</button>`
+                    ? `<span class="registro-label">Última vez</span><span class="registro-valor">${formatRecord(ex, last)}</span><div style="display:flex;gap:6px;align-items:center"><button class="btn-reg" onclick="abrirModal('${ex.id}')">${etiquetaBtnRegistro(ex, true)}</button><button class="btn-del" onclick="borrarRegistro('${ex.id}')">✕</button></div>`
+                    : `<span class="registro-label" style="color:#444">Sin registros</span><button class="btn-reg" onclick="abrirModal('${ex.id}')">${etiquetaBtnRegistro(ex, false)}</button>`
                 }
             </div>` : '';
 
         // Contador de reps (solo ejercicios con contadorReps)
         const contadorHTML = ex.contadorReps ? `
             <div class="contador-row">
-                <span class="contador-label">Contador de reps${ex.contadorMeta ? `<span class="contador-serie" id="contadorSerie_${ex.id}"></span>` : ''}</span>
+                <span class="contador-label">Contador de reps${metaContador(ex) ? `<span class="contador-serie" id="contadorSerie_${ex.id}"></span>` : ''}</span>
                 <button class="btn-contador btn-contador-reset" onclick="resetearContador('${ex.id}')" aria-label="Resetear contador">↺</button>
                 <button class="btn-contador" onclick="ajustarContador('${ex.id}', -1)" aria-label="Restar una rep">−</button>
                 <span class="contador-valor" id="contadorValor_${ex.id}">${getContador(ex.id)}</span>
@@ -1737,7 +1895,7 @@ function renderList(day) {
     });
 
     list.innerHTML = html;
-    data.exercises.forEach(ex => { if (ex.contadorMeta) renderContadorSerie(ex.id); });
+    data.exercises.forEach(ex => { if (metaContador(ex)) renderContadorSerie(ex.id); });
 }
 
 // ── SWITCH DAY ─────────────────────────────────────────────────────────────────
@@ -1899,12 +2057,15 @@ async function cargarDesdeSheets() {
 
         backfillProgresoDesdeSheet(json.data);
         sincronizarPlan(json.data);
+        scriptVersion = Number(json.version) || 1;
+        sincronizarEjercicios(json.data);
     } catch(e) {
         // Si falla, usa localStorage existente
     }
 }
 
 async function init() {
+    aplicarConfigEjercicios();
     currentDay = getAutoDay();
     loadCompletedForDay(currentDay);
     setActiveTab(currentDay);
