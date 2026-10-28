@@ -254,6 +254,9 @@
 
         .ex-card.expanded .ex-chevron { transform: rotate(180deg); }
 
+        /* Abierta, series/reps/peso ya se ven en los badges y en el registro: el resumen bajo el título sobra. */
+        .ex-card.expanded .ex-meta { display: none; }
+
         /* EXPANDIDO */
         .ex-body {
             display: flex;
@@ -363,6 +366,7 @@
             margin-bottom: 6px;
         }
         .modal-field.config-series { flex: 0 0 90px; }
+        .modal-field input.invalido { border-color: #ef4444; background: rgba(239,68,68,0.1); }
 
         .btn-contador-reset {
             width: 36px;
@@ -788,7 +792,7 @@
 // ── DATOS ─────────────────────────────────────────────────────────────────────
 const protocoloRodilla = prefix => [
     { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorSeries: true, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
-    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, restTimer: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
+    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
 
 const dayData = {
@@ -1124,6 +1128,7 @@ function aplicarConfigEjercicios() {
 
 function guardarConfigEjercicio(ex, sets, reps) {
     const cfg = getEjConfig();
+    if (ex.sets !== sets || ex.reps !== reps) reiniciarContador(ex.id);
     cfg[ex.id] = { sets, reps };
     setStorageJSON(ejConfigKey(), cfg);
     ex.sets = sets;
@@ -1170,6 +1175,7 @@ function sincronizarEjercicios(rows) {
             if (mismaConfigEj(r, local[id])) pend.delete(id); else enviarConfigEjercicio(id);
         } else if (!mismaConfigEj(r, local[id])) {
             local[id] = r;
+            reiniciarContador(id);
             cambio = true;
         }
     });
@@ -1449,15 +1455,32 @@ function metaContador(ex) {
     const series = parseInt(ex.sets, 10);
     return reps > 0 && series > 0 ? { reps, series } : null;
 }
+// Lo guardado puede quedar fuera de rango si el plan cambió (en otro dispositivo, o
+// a mano en el Sheet): se ajusta al plan actual antes de usarlo.
+function estadoContador(id, meta) {
+    let valor = getContador(id);
+    let hechas = getSeriesHechas(id);
+    if (hechas >= meta.series) { hechas = meta.series; valor = meta.reps; }
+    else if (valor >= meta.reps) valor = meta.reps - 1;
+    return { valor, hechas };
+}
+
+// Un plan nuevo (series/reps) empieza el contador de ese ejercicio de cero.
+function reiniciarContador(id) {
+    try { localStorage.removeItem(contadorKey(id)); localStorage.removeItem(serieKey(id)); } catch(e) {}
+}
+
 function renderContadorSerie(id) {
     const ex = findExercise(id);
     const el = document.getElementById(`contadorSerie_${id}`);
     const meta = metaContador(ex);
     if (!meta || !el) return;
     const { series } = meta;
-    const hechas = getSeriesHechas(id);
+    const { valor, hechas } = estadoContador(id, meta);
+    const elValor = document.getElementById(`contadorValor_${id}`);
+    if (elValor) elValor.textContent = valor;
     const completo = hechas >= series;
-    el.textContent = completo ? `✓ ${series} series completas` : `Serie ${hechas + 1} de ${series}`;
+    el.textContent = completo ? `✓ ${series} ${series === 1 ? 'serie completa' : 'series completas'}` : `Serie ${hechas + 1} de ${series}`;
     el.classList.toggle('completo', completo);
     const mas = document.getElementById(`contadorMas_${id}`);
     if (mas) mas.disabled = completo;
@@ -1466,10 +1489,11 @@ function renderContadorSerie(id) {
 function ajustarContador(id, delta) {
     const ex = findExercise(id);
     const meta = metaContador(ex);
-    let valor = getContador(id) + delta;
-    if (!meta) { setContador(id, Math.max(0, valor)); return; }
+    if (!meta) { setContador(id, Math.max(0, getContador(id) + delta)); return; }
 
-    let hechas = getSeriesHechas(id);
+    const estado = estadoContador(id, meta);
+    let valor = estado.valor + delta;
+    let hechas = estado.hechas;
     if (delta > 0) {
         if (hechas >= meta.series) return;
         if (valor >= meta.reps) {
@@ -1654,6 +1678,8 @@ function abrirModal(exerciseId) {
     const confRow = document.getElementById('modalConfigRow');
     confRow.style.display = llevaConfig(ex) ? '' : 'none';
     if (llevaConfig(ex)) {
+        document.getElementById('modalSeries').classList.remove('invalido');
+        document.getElementById('modalPlanReps').classList.remove('invalido');
         document.getElementById('modalSeries').value = ex.sets;
         document.getElementById('modalPlanReps').value = ex.reps;
     }
@@ -1705,6 +1731,14 @@ function guardarDesdeModal() {
     if (llevaConfig(ex)) {
         const sets = document.getElementById('modalSeries').value.trim();
         const planReps = document.getElementById('modalPlanReps').value.trim();
+        if (ex.contadorSeries) {
+            // El contador necesita números: series entero y reps con al menos una cifra.
+            const okSets = /^\d+$/.test(sets) && parseInt(sets, 10) > 0;
+            const okReps = /\d/.test(planReps);
+            document.getElementById('modalSeries').classList.toggle('invalido', !okSets);
+            document.getElementById('modalPlanReps').classList.toggle('invalido', !okReps);
+            if (!okSets || !okReps) return;
+        }
         if ((sets && sets !== ex.sets) || (planReps && planReps !== ex.reps)) {
             guardarConfigEjercicio(ex, sets || ex.sets, planReps || ex.reps);
             cambioConfig = true;
