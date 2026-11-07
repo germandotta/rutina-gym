@@ -147,6 +147,21 @@
         .ring-text-hoy { fill: #10b981; }
         .ring-text-semana { fill: #38bdf8; }
         .ring-text-plan { fill: #c084fc; }
+        /* Plan sin duración: recuadro con el número de semanas en vez del anillo */
+        .semanas-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            border: 2px solid #c084fc;
+            background: rgba(192,132,252,0.15);
+            color: #c084fc;
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
         .ring-label { font-size: 11px; color: #888; font-weight: 600; }
         .ring-frac { font-size: 10px; font-weight: 600; }
 
@@ -673,12 +688,13 @@
                     <div class="ring-frac" id="fracSemana" style="color:#38bdf8">0/3</div>
                 </div>
                 <div class="ring-item">
-                    <svg width="52" height="52" viewBox="0 0 56 56">
+                    <div class="semanas-box" id="boxPlan" style="display:none"></div>
+                    <svg id="svgPlan" width="52" height="52" viewBox="0 0 56 56">
                         <circle class="ring-track" cx="28" cy="28" r="24"/>
                         <circle class="ring-fill ring-fill-plan" id="ringPlan" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8" transform="rotate(-90 28 28)"/>
                         <text class="ring-text ring-text-plan" id="ringPlanText" x="28" y="32" text-anchor="middle">0%</text>
                     </svg>
-                    <div class="ring-label">Plan</div>
+                    <div class="ring-label" id="labelPlan">Plan</div>
                     <div class="ring-frac" id="fracPlan" style="color:#c084fc">0/12</div>
                 </div>
             </div>
@@ -773,8 +789,8 @@
                 <input type="date" id="settingsStartDate">
             </div>
             <div class="modal-field">
-                <label>Duración (semanas)</label>
-                <input type="number" id="settingsWeeks" inputmode="numeric" min="1">
+                <label>Duración (semanas) · 0 si no tiene fin</label>
+                <input type="number" id="settingsWeeks" inputmode="numeric" min="0">
             </div>
             <div class="modal-field">
                 <label>Sesiones por semana (objetivo)</label>
@@ -792,8 +808,13 @@
 // ── DATOS ─────────────────────────────────────────────────────────────────────
 const protocoloRodilla = prefix => [
     { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorSeries: true, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
-    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, noImage: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
+    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorSeries: true, noImage: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
+
+// Sin registro: solo muestra el plan. El nombre lo puso Germán porque el fisio no le dio uno.
+const sentadillaPared = prefix => (
+    { id: `${prefix}sentadilla_pared`, section: "Protocolo rodilla (fisio)", name: "Sentadilla isométrica en pared", emoji: "🧱", sets: "8", reps: "3 posiciones × 15 seg", rest: "15 seg", hasLoad: false, noImage: true, instructions: ["Sentarse con la espalda contra la pared","3 posiciones, 15 seg en cada una","Cada posición baja un poco más que la anterior","Sin llegar nunca a 90° de flexión de rodilla","Descansar 15 seg y repetir","Total: 8 vueltas"] }
+);
 
 const dayData = {
     lunes: {
@@ -884,6 +905,7 @@ dayData.rodilla = {
         reusarEjercicio("bici", "rod_bici", {}),
         reusarEjercicio("mov_cadera", "rod_mov_cadera", {}),
         ...protocoloRodilla("rod_"),
+        sentadillaPared("rod_"),
         reusarEjercicio("puente_gluteo", "rod_puente", { section: "Cadera y pantorrilla" }),
         reusarEjercicio("fb_talones", "rod_talones", { section: "Cadera y pantorrilla" }),
         reusarEjercicio("caminata_banda_mie", "rod_caminata_banda", { section: "Cadera y pantorrilla" }),
@@ -1073,7 +1095,8 @@ const PLAN_POR_DEFECTO = { startDate: '2026-08-24', weeks: 12, weeklyGoal: 3 };
 
 function ensurePlanConfig() {
     let cfg = getPlanConfig();
-    if (!cfg || !cfg.startDate || !cfg.weeks) {
+    // weeks 0 es válido: plan sin duración (la gráfica cuenta las semanas desde el inicio).
+    if (!cfg || !cfg.startDate || cfg.weeks == null || !(Number(cfg.weeks) >= 0)) {
         cfg = { ...PLAN_POR_DEFECTO };
         try { localStorage.setItem(planConfigKey(), JSON.stringify(cfg)); } catch(e) {}
     }
@@ -1200,7 +1223,7 @@ const PLAN_SHEET = { dia: '__plan__', ejercicio: 'config', fecha: 'config' };
 function planPendienteKey() { return 'entreno_plan_pendiente'; }
 
 function planValido(c) {
-    return !!(c && /^\d{4}-\d{2}-\d{2}$/.test(c.startDate) && parseInt(c.weeks, 10) > 0 && parseInt(c.weeklyGoal, 10) > 0);
+    return !!(c && /^\d{4}-\d{2}-\d{2}$/.test(c.startDate) && parseInt(c.weeks, 10) >= 0 && parseInt(c.weeklyGoal, 10) > 0);
 }
 
 function mismoPlan(a, b) {
@@ -1242,15 +1265,22 @@ function sincronizarPlan(rows) {
     if (!mismoPlan(remoto, local)) savePlanConfig(remoto.startDate, +remoto.weeks, +remoto.weeklyGoal);
 }
 
+// Semana actual del plan. Con duración 0 no hay tope: abierto = true y totalWeeks = 0.
 function currentPlanWeek() {
     const cfg = ensurePlanConfig();
+    const abierto = !(Number(cfg.weeks) > 0);
     const start = new Date(cfg.startDate + 'T00:00:00');
     const today = new Date(todayStr() + 'T00:00:00');
     const diffDays = Math.floor((today - start) / 86400000);
     let week = Math.floor(diffDays / 7) + 1;
     if (week < 1) week = 1;
-    if (week > cfg.weeks) week = cfg.weeks;
-    return { week, totalWeeks: cfg.weeks };
+    if (!abierto && week > cfg.weeks) week = cfg.weeks;
+    return { week, totalWeeks: abierto ? 0 : Number(cfg.weeks), abierto, startDate: cfg.startDate };
+}
+
+function fechaCorta(iso) {
+    const [, m, d] = iso.split('-').map(Number);
+    return `${d}/${m}`;
 }
 
 function abrirSettings() {
@@ -1268,7 +1298,9 @@ function cerrarSettings() {
 
 function guardarSettings() {
     const startDate = document.getElementById('settingsStartDate').value;
-    const weeks = parseInt(document.getElementById('settingsWeeks').value, 10) || 12;
+    // 0 = sin plan. Vacío o inválido conserva las semanas actuales.
+    const semanasIngresadas = parseInt(document.getElementById('settingsWeeks').value, 10);
+    const weeks = semanasIngresadas >= 0 ? semanasIngresadas : (Number(ensurePlanConfig().weeks) || 0);
     const weeklyGoal = parseInt(document.getElementById('settingsGoal').value, 10) || 3;
     if (!startDate) { cerrarSettings(); return; }
     const cfg = savePlanConfig(startDate, weeks, weeklyGoal);
@@ -1300,14 +1332,27 @@ function renderProgress() {
     const weekGoal = getWeeklyGoal();
     setRing('Semana', weekDone, weekGoal);
 
-    const { week, totalWeeks } = currentPlanWeek();
-    setRing('Plan', week, totalWeeks);
+    const plan = currentPlanWeek();
+    if (plan.abierto) {
+        // Sin duración no hay meta que llenar: recuadro con el número de semanas.
+        document.getElementById('svgPlan').style.display = 'none';
+        const box = document.getElementById('boxPlan');
+        box.style.display = 'flex';
+        box.textContent = String(plan.week);
+        document.getElementById('labelPlan').textContent = 'Semanas';
+        document.getElementById('fracPlan').textContent = `desde ${fechaCorta(plan.startDate)}`;
+    } else {
+        document.getElementById('svgPlan').style.display = '';
+        document.getElementById('boxPlan').style.display = 'none';
+        document.getElementById('labelPlan').textContent = 'Plan';
+        setRing('Plan', plan.week, plan.totalWeeks);
+    }
 
     const resumen = document.getElementById('progresoResumen');
     if (resumen) {
         resumen.innerHTML = `<span>Hoy</span> <span class="frac frac-hoy">${done}/${total}</span>` +
             `<span class="sep"> · </span><span>Semana</span> <span class="frac frac-semana">${weekDone}/${weekGoal}</span>` +
-            `<span class="sep"> · </span><span>Plan</span> <span class="frac frac-plan">${week}/${totalWeeks}</span>`;
+            `<span class="sep"> · </span><span>${plan.abierto ? 'Semanas' : 'Plan'}</span> <span class="frac frac-plan">${plan.abierto ? plan.week : `${plan.week}/${plan.totalWeeks}`}</span>`;
     }
 }
 
@@ -1480,7 +1525,10 @@ function renderContadorSerie(id) {
     const elValor = document.getElementById(`contadorValor_${id}`);
     if (elValor) elValor.textContent = valor;
     const completo = hechas >= series;
-    el.textContent = completo ? `✓ ${series} ${series === 1 ? 'serie completa' : 'series completas'}` : `Serie ${hechas + 1} de ${series}`;
+    // Serie en curso: 0 hasta la primera rep; al completar una y volver a 0 sigue en esa
+    // cifra, y con la primera rep de la siguiente sube.
+    const enCurso = Math.min(series, hechas + (valor > 0 ? 1 : 0));
+    el.textContent = completo ? `✓ Series ${series} de ${series}` : `Series ${enCurso} de ${series}`;
     el.classList.toggle('completo', completo);
     const mas = document.getElementById(`contadorMas_${id}`);
     if (mas) mas.disabled = completo;
