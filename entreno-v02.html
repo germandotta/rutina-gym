@@ -149,13 +149,16 @@
         .ring-text-plan { fill: #c084fc; }
         /* Plan sin duración: recuadro con el número de semanas en vez del anillo */
         .semanas-box {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
+            /* Mide como el círculo de los anillos (r=24 en un viewBox de 56 dentro de 52px), y deja
+               el mismo alto total para que las etiquetas queden alineadas. */
+            width: 44px;
+            height: 44px;
+            margin: 4px 0;
+            border-radius: 10px;
             border: 2px solid #c084fc;
             background: rgba(192,132,252,0.15);
             color: #c084fc;
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 700;
             display: flex;
             align-items: center;

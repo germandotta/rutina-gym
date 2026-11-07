@@ -103,7 +103,8 @@ function leerPlan() {
   const startDate = fechaISO(v[0]);
   const weeks = Number(v[1]);
   const weeklyGoal = Number(v[2]);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !(weeks > 0) || !(weeklyGoal > 0)) return null;
+  // Semanas 0 = plan sin duración (válido; la app cuenta las semanas desde el inicio). Celda vacía = dato faltante.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || v[1] === '' || !(weeks >= 0) || !(weeklyGoal > 0)) return null;
   return { startDate, weeks, weeklyGoal };
 }
 
@@ -156,7 +157,7 @@ function doPost(e) {
   if (data.dia === DIA_PLAN) {
     try {
       const cfg = JSON.parse(data.carga);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(cfg.startDate)) || !(Number(cfg.weeks) > 0) || !(Number(cfg.weeklyGoal) > 0)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(cfg.startDate)) || !(Number(cfg.weeks) >= 0) || !(Number(cfg.weeklyGoal) > 0)) {
         return respuesta({ ok: false, error: 'plan invalido' });
       }
       guardarPlan(cfg);
