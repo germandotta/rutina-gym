@@ -331,7 +331,6 @@
 
         .contador-label { font-size: 11px; color: #555; flex: 1; display: flex; flex-direction: column; gap: 2px; }
         .contador-serie { font-size: 13px; font-weight: 700; color: #10b981; }
-        .contador-serie.completo { color: #34d399; }
         .btn-contador:disabled { opacity: 0.35; cursor: default; }
 
         .contador-valor {
@@ -387,10 +386,11 @@
         .modal-field input.invalido { border-color: #ef4444; background: rgba(239,68,68,0.1); }
 
         .btn-contador-reset {
-            width: 36px;
-            height: 36px;
-            font-size: 18px;
-            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            color: rgba(255,255,255,0.75);
         }
 
         /* TIMER DE DESCANSO */
@@ -810,8 +810,8 @@
 <script>
 // ── DATOS ─────────────────────────────────────────────────────────────────────
 const protocoloRodilla = prefix => [
-    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorSeries: true, noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
-    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorSeries: true, noImage: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
+    { id: `${prefix}iso_sillon`, section: "Protocolo rodilla (fisio)", name: "Isométrico en sillón de cuádriceps", emoji: "🦿", sets: "2", reps: "8 c/pierna, alternando", rest: "120 seg", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorModo: 'repsSeries', noImage: true, restTimer: true, instructions: ["Subir con las dos piernas hasta un ángulo intermedio","Pierna afectada sola: sostener 15 seg","Apoyar las dos, subir a posición más extendida; afectada sola 15 seg","Bajar con las dos piernas","Pierna sana: mismo patrón, 10 seg en cada posición","Cambios de posición SIEMPRE con las dos piernas","Carga pesada: que cueste pero que no duela"] },
+    { id: `${prefix}exc_sillon`, section: "Protocolo rodilla (fisio)", name: "Excéntrico en sillón de cuádriceps", emoji: "🦵", sets: "4", reps: "8 afectada / 6 sana", rest: "-", hasLoad: true, loadLabel: "Peso sillón (kg)", contadorReps: true, contadorModo: 'series', noImage: true, instructions: ["Subir siempre con las dos piernas","Rango articular sin dolor","Una sola pierna sostiene el peso y frena la bajada hasta el final","Bajada lenta y controlada","4 series de 8 con la afectada, 4 series de 6 con la sana"] }
 ];
 
 // Sin registro: solo muestra el plan. El nombre lo puso Germán porque el fisio no le dio uno.
@@ -1493,22 +1493,29 @@ function setContador(id, valor, seriesHechas) {
     renderContadorSerie(id);
 }
 
-// Ejercicios con contadorSeries: al llegar a las reps del plan se completa una
-// serie y el contador vuelve a 0 para la siguiente. Al completar la última queda
-// en la meta y no deja seguir sumando. Reps y series salen del plan del ejercicio
-// (editable desde "Configurar"): la primera cifra de las reps ("8 c/pierna" -> 8).
+// Dos modos de contador, según el ejercicio (ex.contadorModo). Series y reps salen del
+// plan del ejercicio, editable desde "Configurar".
+//  - 'repsSeries' (isométrico): se cuentan reps. Al llegar a las reps del plan, las reps
+//    vuelven a 0 y pasa a la serie siguiente; al completar la última serie todo vuelve
+//    a empezar (0 de N). Reps = primera cifra del texto ("8 c/pierna" -> 8).
+//  - 'series' (excéntrico): las reps son muy rápidas para contarlas, así que el contador
+//    cuenta series. Al llegar a las series del plan vuelve a 0.
 function metaContador(ex) {
-    if (!ex || !ex.contadorSeries) return null;
-    const reps = parseInt((String(ex.reps).match(/\d+/) || [])[0], 10);
+    if (!ex || !ex.contadorModo) return null;
     const series = parseInt(ex.sets, 10);
-    return reps > 0 && series > 0 ? { reps, series } : null;
+    if (!(series > 0)) return null;
+    if (ex.contadorModo === 'series') return { modo: 'series', series };
+    const reps = parseInt((String(ex.reps).match(/\d+/) || [])[0], 10);
+    return reps > 0 ? { modo: 'repsSeries', reps, series } : null;
 }
+
 // Lo guardado puede quedar fuera de rango si el plan cambió (en otro dispositivo, o
 // a mano en el Sheet): se ajusta al plan actual antes de usarlo.
 function estadoContador(id, meta) {
     let valor = getContador(id);
     let hechas = getSeriesHechas(id);
-    if (hechas >= meta.series) { hechas = meta.series; valor = meta.reps; }
+    if (meta.modo === 'series') return { valor: valor >= meta.series ? 0 : valor, hechas: 0 };
+    if (hechas >= meta.series) { hechas = 0; valor = 0; }
     else if (valor >= meta.reps) valor = meta.reps - 1;
     return { valor, hechas };
 }
@@ -1523,18 +1530,17 @@ function renderContadorSerie(id) {
     const el = document.getElementById(`contadorSerie_${id}`);
     const meta = metaContador(ex);
     if (!meta || !el) return;
-    const { series } = meta;
     const { valor, hechas } = estadoContador(id, meta);
     const elValor = document.getElementById(`contadorValor_${id}`);
     if (elValor) elValor.textContent = valor;
-    const completo = hechas >= series;
-    // Serie en curso: 0 hasta la primera rep; al completar una y volver a 0 sigue en esa
-    // cifra, y con la primera rep de la siguiente sube.
-    const enCurso = Math.min(series, hechas + (valor > 0 ? 1 : 0));
-    el.textContent = completo ? `✓ Series ${series} de ${series}` : `Series ${enCurso} de ${series}`;
-    el.classList.toggle('completo', completo);
-    const mas = document.getElementById(`contadorMas_${id}`);
-    if (mas) mas.disabled = completo;
+    if (meta.modo === 'series') {
+        el.textContent = `de ${meta.series} series`;
+    } else {
+        // Serie en curso: 0 hasta la primera rep; al completar una y volver las reps a 0,
+        // ya figura la siguiente.
+        const enCurso = (hechas === 0 && valor === 0) ? 0 : hechas + 1;
+        el.textContent = `Series ${enCurso} de ${meta.series}`;
+    }
 }
 
 function ajustarContador(id, delta) {
@@ -1542,22 +1548,28 @@ function ajustarContador(id, delta) {
     const meta = metaContador(ex);
     if (!meta) { setContador(id, Math.max(0, getContador(id) + delta)); return; }
 
-    const estado = estadoContador(id, meta);
-    let valor = estado.valor + delta;
-    let hechas = estado.hechas;
+    let { valor, hechas } = estadoContador(id, meta);
+    if (meta.modo === 'series') {
+        valor += delta;
+        if (valor >= meta.series) valor = 0;
+        if (valor < 0) valor = 0;
+        setContador(id, valor);
+        return;
+    }
+
     if (delta > 0) {
-        if (hechas >= meta.series) return;
+        valor++;
         if (valor >= meta.reps) {
+            valor = 0;
             hechas++;
-            valor = hechas >= meta.series ? meta.reps : 0;
+            if (hechas >= meta.series) hechas = 0;
         }
-    } else if (valor < 0) {
+    } else if (valor > 0) {
+        valor--;
+    } else if (hechas > 0) {
         // Restar desde 0: vuelve a la serie anterior, una rep antes de completarla.
-        if (hechas === 0) valor = 0;
-        else { hechas--; valor = meta.reps - 1; }
-    } else if (hechas >= meta.series) {
-        // Estaba todo completo: restar reabre la última serie.
-        hechas--; valor = meta.reps - 1;
+        hechas--;
+        valor = meta.reps - 1;
     }
     setContador(id, valor, hechas);
 }
@@ -1782,10 +1794,10 @@ function guardarDesdeModal() {
     if (llevaConfig(ex)) {
         const sets = document.getElementById('modalSeries').value.trim();
         const planReps = document.getElementById('modalPlanReps').value.trim();
-        if (ex.contadorSeries) {
-            // El contador necesita números: series entero y reps con al menos una cifra.
+        if (ex.contadorModo) {
+            // El contador necesita números: series entero y, si cuenta reps, reps con al menos una cifra.
             const okSets = /^\d+$/.test(sets) && parseInt(sets, 10) > 0;
-            const okReps = /\d/.test(planReps);
+            const okReps = ex.contadorModo === 'series' || /\d/.test(planReps);
             document.getElementById('modalSeries').classList.toggle('invalido', !okSets);
             document.getElementById('modalPlanReps').classList.toggle('invalido', !okReps);
             if (!okSets || !okReps) return;
@@ -1937,11 +1949,11 @@ function renderList(day) {
         // Contador de reps (solo ejercicios con contadorReps)
         const contadorHTML = ex.contadorReps ? `
             <div class="contador-row">
-                <span class="contador-label">Contador de reps${metaContador(ex) ? `<span class="contador-serie" id="contadorSerie_${ex.id}"></span>` : ''}</span>
-                <button class="btn-contador btn-contador-reset" onclick="resetearContador('${ex.id}')" aria-label="Resetear contador">↺</button>
-                <button class="btn-contador" onclick="ajustarContador('${ex.id}', -1)" aria-label="Restar una rep">−</button>
+                <span class="contador-label">${ex.contadorModo === 'series' ? 'Contador de series' : 'Contador de reps'}${metaContador(ex) ? `<span class="contador-serie" id="contadorSerie_${ex.id}"></span>` : ''}</span>
+                <button class="btn-contador btn-contador-reset" onclick="resetearContador('${ex.id}')" aria-label="Resetear contador"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+                <button class="btn-contador" onclick="ajustarContador('${ex.id}', -1)" aria-label="Restar">−</button>
                 <span class="contador-valor" id="contadorValor_${ex.id}">${getContador(ex.id)}</span>
-                <button class="btn-contador btn-contador-mas" id="contadorMas_${ex.id}" onclick="ajustarContador('${ex.id}', 1)" aria-label="Sumar una rep">+</button>
+                <button class="btn-contador btn-contador-mas" onclick="ajustarContador('${ex.id}', 1)" aria-label="Sumar">+</button>
             </div>` : '';
 
         // Specs
